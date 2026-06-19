@@ -1,0 +1,351 @@
+/* pages/shopping/shopping.wxss */
+.container {
+  padding: 24rpx;
+  padding-bottom: 200rpx;
+}
+
+/* 日期范围 */
+.date-range {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 28rpx;
+}
+
+.range-label {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.range-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 600;
+  margin-left: 16rpx;
+}
+
+.refresh-link {
+  font-size: 26rpx;
+  color: #FF6B35;
+  margin-left: 12rpx;
+}
+
+/* 批量操作工具栏 */
+.batch-toolbar {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+.batch-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 16rpx 0;
+  background: #FFF;
+  border-radius: 14rpx;
+  font-size: 26rpx;
+  color: #666;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+.batch-btn.danger {
+  color: #E74C3C;
+}
+.batch-btn-icon {
+  font-size: 28rpx;
+}
+
+/* 品类 */
+.category-section {
+  margin-bottom: 24rpx;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 8rpx;
+}
+
+.category-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.category-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+  flex: 1;
+}
+
+.category-count {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+/* 采购项 */
+.item-list {
+  padding: 8rpx 28rpx;
+}
+
+.shopping-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #FFF0E0;
+}
+
+.shopping-item:last-child {
+  border-bottom: none;
+}
+
+.shopping-item.checked {
+  opacity: 0.5;
+}
+
+.shopping-item.checked .item-name {
+  text-decoration: line-through;
+}
+
+.check-circle {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 3rpx solid #F7C59F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #FFFFFF;
+}
+
+.check-circle.checked {
+  background: #FF6B35;
+  border-color: #FF6B35;
+}
+
+.item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-name {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.item-amount {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 4rpx;
+}
+
+.item-price {
+  font-size: 26rpx;
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+/* 底部统计 */
+.summary-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 24rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.08);
+}
+
+.summary-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.summary-label {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.summary-price {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #FF6B35;
+  margin-top: 4rpx;
+}
+
+.summary-count {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #333333;
+  margin-top: 4rpx;
+}
+
+/* AI 生成入口 */
+.ai-generate-card {
+  background: linear-gradient(135deg, #FFF8E1, #FFFFFF);
+}
+
+.ai-generate-row {
+  display: flex;
+  align-items: center;
+}
+
+.ai-generate-icon {
+  font-size: 48rpx;
+  margin-right: 20rpx;
+}
+
+.ai-generate-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-generate-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #333333;
+}
+
+.ai-generate-sub {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 4rpx;
+}
+
+.ai-generate-arrow {
+  font-size: 36rpx;
+  color: #FF6B35;
+}
+
+/* 冰箱库存输入 */
+.inventory-card {
+  padding: 28rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 16rpx;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 120rpx;
+  background: #FFF8F3;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333333;
+  box-sizing: border-box;
+  margin-bottom: 24rpx;
+}
+
+.inventory-btns {
+  display: flex;
+  gap: 24rpx;
+}
+
+.inv-btn {
+  flex: 1;
+  height: 80rpx;
+}
+
+.inv-btn.disabled {
+  opacity: 0.6;
+}
+
+/* 删除按钮 */
+.delete-item-btn {
+  padding: 8rpx 12rpx;
+  margin-left: 8rpx;
+  font-size: 24rpx;
+  color: #CCC;
+}
+.delete-item-btn:active {
+  color: #E74C3C;
+}
+
+/* 分类头部添加按钮 */
+.add-item-btn {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: rgba(255,107,53,0.1);
+  color: #FF6B35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 手动添加入口 */
+.manual-add-card {
+  margin-bottom: 24rpx;
+}
+.manual-add-row {
+  display: flex;
+  align-items: center;
+}
+.manual-add-icon { font-size: 36rpx; margin-right: 16rpx; }
+.manual-add-text { flex: 1; font-size: 28rpx; color: #333; font-weight: 500; }
+.manual-add-arrow { font-size: 32rpx; color: #FF6B35; }
+
+/* 手动添加表单 */
+.add-item-card {
+  padding: 24rpx 28rpx;
+  margin-bottom: 24rpx;
+}
+.add-item-row {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+.add-input {
+  flex: 1;
+  height: 80rpx;
+  background: #FFF8F3;
+  border-radius: 14rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+.form-label-sm {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+  display: block;
+}
+.cat-scroll {
+  white-space: nowrap;
+  margin-bottom: 24rpx;
+}
+.cat-chip {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  background: #FFF0E0;
+  color: #888;
+  margin-right: 12rpx;
+}
+.cat-chip.active {
+  background: #FF6B35;
+  color: #FFF;
+}
+.add-item-btns {
+  display: flex;
+  gap: 20rpx;
+}
+.add-btn {
+  flex: 1;
+  height: 80rpx;
+}

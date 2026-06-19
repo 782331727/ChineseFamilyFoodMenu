@@ -1,0 +1,175 @@
+<!-- pages/home/home.wxml -->
+<view class="container">
+  <!-- 顶部欢迎语 -->
+  <view class="welcome">
+    <view class="welcome-text">
+      <view class="greeting">{{greeting}}，{{userName}}</view>
+      <view class="date-text">{{todayText}}</view>
+    </view>
+    <image class="welcome-avatar" src="{{avatar || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+  </view>
+
+  <!-- 未加入家庭引导 -->
+  <view class="card no-family-card" wx:if="{{!hasFamily}}">
+    <view class="no-family-row">
+      <text class="no-family-icon">🏠</text>
+      <view class="no-family-text">
+        <text class="no-family-title">加入或创建家庭</text>
+        <text class="no-family-sub">创建家庭或输入家人的邀请码加入，即可开始管理菜单、预定菜品</text>
+      </view>
+    </view>
+    <view class="no-family-btns">
+      <view class="no-family-btn" bind:tap="goFamily">
+        <text>创建家庭 →</text>
+      </view>
+      <view class="no-family-btn join-btn" bind:tap="goFamilyJoin">
+        <text>加入家庭 →</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 今日菜单 / 本周菜单 -->
+  <view class="section" wx:if="{{hasFamily}}">
+    <view class="section-header">
+      <view class="section-title-row">
+        <text class="title">{{viewMode === 'today' ? '今日菜单' : '本周菜单'}}</text>
+        <text class="view-toggle {{viewMode === 'today' ? 'active' : ''}}" data-mode="today" bind:tap="switchView">今天</text>
+        <text class="view-toggle {{viewMode === 'week' ? 'active' : ''}}" data-mode="week" bind:tap="switchView">本周</text>
+      </view>
+      <text class="more" bind:tap="goPreorderList">查看预定 →</text>
+    </view>
+
+    <!-- 做菜计时卡片 -->
+    <view class="cooking-card card" wx:if="{{cookingDish}}">
+      <view class="cooking-row">
+        <text class="cooking-icon">👨‍🍳</text>
+        <view class="cooking-info">
+          <text class="cooking-dish">{{cookingDish.name}}</text>
+          <text class="cooking-chef">{{cookingDish.cookName}} 正在做菜</text>
+        </view>
+        <view class="cooking-timer">
+          <text class="cooking-elapsed">{{cookingElapsed}}</text>
+        </view>
+      </view>
+      <view class="cooking-actions" wx:if="{{canManageDishes}}">
+        <view class="btn-primary cooking-done-btn" bind:tap="finishCooking">
+          <text>完成 ✓</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 今日视图 -->
+    <block wx:if="{{viewMode === 'today'}}">
+      <view class="meal-cards">
+        <view class="meal-card morning" wx:if="{{todayMenu.morning.length > 0}}">
+          <view class="meal-header"><text class="meal-icon">🌅</text><text class="meal-title">早餐</text></view>
+          <view class="meal-dish" wx:for="{{todayMenu.morning}}" wx:key="menuId" data-menu-id="{{item.menuId}}" bind:tap="startCooking">
+            <text class="meal-dish-name">{{item.name}}</text>
+            <text class="meal-cook" wx:if="{{cookMap[item.cookId]}}">👨‍🍳{{cookMap[item.cookId]}}</text>
+          </view>
+        </view>
+        <view class="meal-card noon" wx:if="{{todayMenu.noon.length > 0}}">
+          <view class="meal-header"><text class="meal-icon">☀️</text><text class="meal-title">午餐</text></view>
+          <view class="meal-dish" wx:for="{{todayMenu.noon}}" wx:key="menuId" data-menu-id="{{item.menuId}}" bind:tap="startCooking">
+            <text class="meal-dish-name">{{item.name}}</text>
+            <text class="meal-cook" wx:if="{{cookMap[item.cookId]}}">👨‍🍳{{cookMap[item.cookId]}}</text>
+          </view>
+        </view>
+        <view class="meal-card evening" wx:if="{{todayMenu.evening.length > 0}}">
+          <view class="meal-header"><text class="meal-icon">🌙</text><text class="meal-title">晚餐</text></view>
+          <view class="meal-dish" wx:for="{{todayMenu.evening}}" wx:key="menuId" data-menu-id="{{item.menuId}}" bind:tap="startCooking">
+            <text class="meal-dish-name">{{item.name}}</text>
+            <text class="meal-cook" wx:if="{{cookMap[item.cookId]}}">👨‍🍳{{cookMap[item.cookId]}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="empty-meal-hint" wx:if="{{todayMenu.morning.length + todayMenu.noon.length + todayMenu.evening.length === 0}}">
+        <text>今日暂无安排，去预定明天的菜吧 →</text>
+        <text class="empty-link" bind:tap="goPreorder">去预定</text>
+      </view>
+    </block>
+
+    <!-- 本周视图 -->
+    <block wx:if="{{viewMode === 'week'}}">
+      <view class="week-list">
+        <view class="week-day" wx:for="{{weekMenus}}" wx:key="date">
+          <view class="week-day-header">
+            <text class="week-day-label">{{item.label}}</text>
+            <text class="week-day-week">{{item.week}}</text>
+          </view>
+          <view class="week-meals">
+            <block wx:if="{{item.meals.morning.length + item.meals.noon.length + item.meals.evening.length === 0}}">
+              <text class="week-empty">暂无安排</text>
+            </block>
+            <view class="week-meal-row" wx:if="{{item.meals.morning.length > 0}}">
+              <text class="week-meal-type">🌅</text>
+              <view class="week-meal-names"><text wx:for="{{item.meals.morning}}" wx:key="menuId" wx:for-item="d">{{d.name}}</text></view>
+            </view>
+            <view class="week-meal-row" wx:if="{{item.meals.noon.length > 0}}">
+              <text class="week-meal-type">☀️</text>
+              <view class="week-meal-names"><text wx:for="{{item.meals.noon}}" wx:key="menuId" wx:for-item="d">{{d.name}}</text></view>
+            </view>
+            <view class="week-meal-row" wx:if="{{item.meals.evening.length > 0}}">
+              <text class="week-meal-type">🌙</text>
+              <view class="week-meal-names"><text wx:for="{{item.meals.evening}}" wx:key="menuId" wx:for-item="d">{{d.name}}</text></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 明日预定摘要 -->
+  <view class="section" wx:if="{{hasFamily}}">
+    <view class="section-header">
+      <text class="title">明日预定摘要</text>
+      <text class="more" bind:tap="goPreorder">去预定 →</text>
+    </view>
+    <view class="card preorder-summary" wx:if="{{preorderSummary.count > 0}}" bind:tap="goPreorderList">
+      <view class="preorder-members">
+        <image class="avatar-sm member-avatar" wx:for="{{preorderSummary.members}}" wx:key="openid" src="{{item.avatar || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="more-members" wx:if="{{preorderSummary.members.length > 5}}">
+          +{{preorderSummary.members.length - 5}}
+        </view>
+      </view>
+      <view class="preorder-info">
+        <text class="preorder-count">{{preorderSummary.count}} 道菜已预定</text>
+        <text class="preorder-hint">{{preorderSummary.unorderedCount}} 人未预定</text>
+      </view>
+      <view class="preorder-dishes" wx:if="{{preorderSummary.dishes.length > 0}}">
+        <view class="preorder-dish-item" wx:for="{{preorderSummary.dishes}}" wx:key="name">
+          <text class="preorder-dish-name">{{item.name}}</text>
+          <text class="preorder-dish-booker">{{item.booker}}</text>
+        </view>
+      </view>
+    </view>
+    <empty-state wx:else text="还没有人预定明天的菜" subText="快来第一个预定吧" btnText="去预定" bind:btntap="goPreorder"></empty-state>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="title">快捷操作</text>
+    </view>
+    <view class="quick-actions">
+      <view class="quick-btn ai-btn" bind:tap="goAIRecommend" wx:if="{{canManageDishes}}">
+        <text class="quick-icon">🤖</text>
+        <text class="quick-text">AI推荐</text>
+      </view>
+      <view class="quick-btn add-dish-btn" bind:tap="goAddDish" wx:if="{{canManageDishes}}">
+        <text class="quick-icon">➕</text>
+        <text class="quick-text">添加菜品</text>
+      </view>
+      <view class="quick-btn shopping-btn" bind:tap="goShopping">
+        <text class="quick-icon">🛒</text>
+        <text class="quick-text">采购清单</text>
+      </view>
+      <view class="quick-btn family-btn" bind:tap="goFamily">
+        <text class="quick-icon">👨‍👩‍👧‍👦</text>
+        <text class="quick-text">家庭管理</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="safe-bottom"></view>
+</view>

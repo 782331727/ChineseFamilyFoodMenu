@@ -1,0 +1,110 @@
+<!-- pages/dish-detail/dish-detail.wxml -->
+<view class="container" wx:if="{{dish}}">
+  <!-- 大图 -->
+  <view class="dish-hero">
+    <image class="hero-image" src="{{dish.image || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+    <view class="hero-overlay">
+      <view class="dish-name">{{dish.name}}</view>
+      <view class="dish-tags" wx:if="{{dish.tags && dish.tags.length}}">
+        <text class="tag" wx:for="{{dish.tags}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评分 -->
+  <view class="card rating-card">
+    <view class="rating-row">
+      <text class="rating-label">评分</text>
+      <view class="stars-display">
+        <text class="star {{dish.avg_rating >= 1 ? 'active' : ''}}">★</text>
+        <text class="star {{dish.avg_rating >= 2 ? 'active' : ''}}">★</text>
+        <text class="star {{dish.avg_rating >= 3 ? 'active' : ''}}">★</text>
+        <text class="star {{dish.avg_rating >= 4 ? 'active' : ''}}">★</text>
+        <text class="star {{dish.avg_rating >= 5 ? 'active' : ''}}">★</text>
+      </view>
+      <text class="rating-num">{{dish.avg_rating || '暂无'}}</text>
+      <text class="rating-count" wx:if="{{dish.rating_count}}">({{dish.rating_count}}人)</text>
+    </view>
+    <view class="rating-row">
+      <text class="rating-label">我的评价</text>
+      <view class="stars-picker">
+        <text class="star pick {{myRating >= 1 ? 'active' : ''}}" data-r="1" bind:tap="rateDish">★</text>
+        <text class="star pick {{myRating >= 2 ? 'active' : ''}}" data-r="2" bind:tap="rateDish">★</text>
+        <text class="star pick {{myRating >= 3 ? 'active' : ''}}" data-r="3" bind:tap="rateDish">★</text>
+        <text class="star pick {{myRating >= 4 ? 'active' : ''}}" data-r="4" bind:tap="rateDish">★</text>
+        <text class="star pick {{myRating >= 5 ? 'active' : ''}}" data-r="5" bind:tap="rateDish">★</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 信息栏 -->
+  <view class="info-bar card">
+    <view class="info-item">
+      <text class="info-label">难度</text>
+      <text class="info-value difficulty-{{dish.difficulty}}">{{difficultyText}}</text>
+    </view>
+    <view class="info-divider"></view>
+    <view class="info-item">
+      <text class="info-label">用时</text>
+      <text class="info-value">{{dish.cookTime}}分钟</text>
+    </view>
+    <view class="info-divider"></view>
+    <view class="info-item">
+      <text class="info-label">分类</text>
+      <text class="info-value">{{dish.category || '家常'}}</text>
+    </view>
+  </view>
+
+  <!-- 食材清单 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="title">食材清单</text>
+    </view>
+    <view class="card ingredient-list">
+      <view class="ingredient-item" wx:for="{{dish.ingredients}}" wx:key="name">
+        <text class="ingredient-name">{{item.name}}</text>
+        <text class="ingredient-amount">{{item.amount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 做法步骤 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="title">做法步骤</text>
+    </view>
+    <view class="steps">
+      <view class="step-card card" wx:for="{{dish.steps}}" wx:key="index">
+        <view class="step-number">{{index + 1}}</view>
+        <view class="step-content">
+          <text class="step-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view style="height: 140rpx;"></view>
+</view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{dish}}">
+    <view class="bottom-btn primary" bind:tap="cloneDish" wx:if="{{isForeign}}">
+      <text>{{cloning ? '引入中...' : '🍴 引入到我家'}}</text>
+    </view>
+    <block wx:else>
+      <view class="bottom-btn primary" bind:tap="onPreorder">
+        <text>预定</text>
+      </view>
+      <view class="bottom-btn outline danger" bind:tap="onDelete" wx:if="{{canManage}}">
+        <text>删除</text>
+      </view>
+      <view class="bottom-btn outline" bind:tap="onEdit" wx:if="{{canManage}}">
+        <text>编辑</text>
+      </view>
+    </block>
+  </view>
+
+<!-- 加载中 -->
+<view class="loading-page" wx:if="{{!dish && loading}}">
+  <text>加载中...</text>
+</view>

@@ -1,0 +1,9 @@
+{
+  "name": "preorder-list",
+  "version": "1.0.0",
+  "description": "查询预定列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

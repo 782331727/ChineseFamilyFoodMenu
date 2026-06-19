@@ -1,0 +1,81 @@
+<!-- pages/preorder/preorder.wxml -->
+<view class="container">
+  <!-- 日期选择 -->
+  <view class="card">
+    <view class="form-label">选择日期</view>
+    <scroll-view class="date-scroll" scroll-x enable-flex>
+      <view class="date-item {{selectedDate === item.date ? 'active' : ''}}" wx:for="{{dateOptions}}" wx:key="date" data-date="{{item.date}}" bind:tap="selectDate">
+        <text class="date-label">{{item.label}}</text>
+        <text class="date-week">{{item.week}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 餐次选择 -->
+  <view class="card">
+    <view class="form-label">餐次</view>
+    <view class="meal-selector">
+      <view class="meal-option {{selectedMeal === item.value ? 'active' : ''}}" wx:for="{{mealOptions}}" wx:key="value" data-value="{{item.value}}" bind:tap="selectMeal">
+        <text class="meal-emoji">{{item.emoji}}</text>
+        <text class="meal-name">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 菜品选择 -->
+  <view class="card">
+    <view class="form-label">选择菜品（可多选）</view>
+    <!-- 搜索 -->
+    <view class="search-bar-sm">
+      <input class="search-input-sm" placeholder="搜索菜品" value="{{keyword}}" bindinput="onSearchInput" confirm-type="search"></input>
+      <text class="search-clear-sm" wx:if="{{keyword}}" bind:tap="clearSearch">✕</text>
+    </view>
+    <view class="dish-grid" wx:if="{{dishList.length > 0}}">
+      <view class="dish-grid-item {{selectedDishes[item._id] ? 'selected' : ''}}" wx:for="{{dishList}}" wx:key="_id" data-id="{{item._id}}" data-name="{{item.name}}" bind:tap="toggleDish">
+        <image class="grid-dish-image" src="{{item.image || '/assets/default-avatar.png'}}" mode="aspectFill" lazy-load="{{true}}"></image>
+        <text class="grid-dish-name">{{item.name}}</text>
+        <text class="grid-dish-booker" wx:if="{{othersPreorder[item._id]}}">{{othersPreorder[item._id]}}</text>
+        <view class="check-mark" wx:if="{{selectedDishes[item._id]}}">✓</view>
+      </view>
+    </view>
+    <view class="empty-text" wx:else>
+      <text>菜品库暂无菜品</text>
+    </view>
+  </view>
+
+  <!-- 他人已预定摘要 -->
+  <view class="card others-card" wx:if="{{othersList.length > 0}}">
+    <view class="form-label">📋 已有人预定</view>
+    <view class="others-row">
+      <view class="others-chip" wx:for="{{othersList}}" wx:key="_key">
+        <image class="others-avatar" src="{{item.avatar || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+        <text class="others-text">{{item.name}}·{{item.dishName}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 备注 -->
+  <view class="card">
+    <view class="form-label">备注（可选）</view>
+    <textarea class="form-textarea" placeholder="如：少放辣、不要香菜等" value="{{remark}}" bindinput="onRemarkInput"></textarea>
+  </view>
+
+  <!-- 已选菜品摘要 -->
+  <view class="selected-summary" wx:if="{{selectedCount > 0}}">
+    <text class="summary-text">已选 {{selectedCount}} 道菜</text>
+  </view>
+
+  <view style="height: 140rpx;"></view>
+
+  <!-- 底部说明 -->
+  <view class="preorder-note">
+    <text>💡 预定后自动加入当日菜单和采购清单</text>
+  </view>
+
+  <!-- 底部提交 -->
+  <view class="bottom-bar">
+    <view class="btn-primary submit-btn {{selectedCount === 0 ? 'disabled' : ''}}" bind:tap="submitPreorder">
+      <text>提交预定</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,135 @@
+<!-- pages/profile/profile.wxml -->
+<view class="container">
+  <!-- 用户信息 -->
+  <view class="profile-header">
+    <view class="avatar-wrap" bind:tap="changeAvatar">
+      <image class="avatar-lg" src="{{userInfo.avatarUrl || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="avatar-edit-mask"><text>换头像</text></view>
+    </view>
+    <view class="user-info">
+      <view class="name-row" bind:tap="editNickname">
+        <text class="user-name">{{userInfo.nickName || '未登录'}}</text>
+        <text class="edit-icon">✎</text>
+      </view>
+      <view class="role-badge role-{{role}}">
+        <text>{{roleText}}</text>
+      </view>
+    </view>
+    <view class="login-btn" wx:if="{{!isLogin}}" bind:tap="handleLogin">
+      <text>登录</text>
+    </view>
+  </view>
+
+  <!-- 编辑昵称弹窗 -->
+  <view class="modal-mask" wx:if="{{showNickModal}}" bind:tap="closeNickModal"></view>
+  <view class="modal-card" wx:if="{{showNickModal}}">
+    <text class="modal-title">修改昵称</text>
+    <input class="modal-input" placeholder="输入新昵称" value="{{editNick}}" bindinput="onNickInput" maxlength="20"></input>
+    <view class="modal-btns">
+      <view class="btn-outline modal-btn" bind:tap="closeNickModal"><text>取消</text></view>
+      <view class="btn-primary modal-btn" bind:tap="saveNickname"><text>保存</text></view>
+    </view>
+  </view>
+
+  <!-- 口味偏好 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="title">口味偏好</text>
+    </view>
+    <view class="card">
+      <view class="taste-item">
+        <text class="taste-label">🌶️ 辣度</text>
+        <slider class="taste-slider" min="0" max="5" step="1" value="{{taste.spicy}}" data-key="spicy" bindchange="onTasteChange" block-color="#FF6B35" activeColor="#FF6B35"></slider>
+        <text class="taste-value">{{taste.spicy}}/5</text>
+      </view>
+      <view class="taste-item">
+        <text class="taste-label">🍬 甜度</text>
+        <slider class="taste-slider" min="0" max="5" step="1" value="{{taste.sweet}}" data-key="sweet" bindchange="onTasteChange" block-color="#FF6B35" activeColor="#FF6B35"></slider>
+        <text class="taste-value">{{taste.sweet}}/5</text>
+      </view>
+      <view class="taste-item">
+        <text class="taste-label">🍋 酸度</text>
+        <slider class="taste-slider" min="0" max="5" step="1" value="{{taste.sour}}" data-key="sour" bindchange="onTasteChange" block-color="#FF6B35" activeColor="#FF6B35"></slider>
+        <text class="taste-value">{{taste.sour}}/5</text>
+      </view>
+      <view class="taste-item">
+        <text class="taste-label">🧂 咸度</text>
+        <slider class="taste-slider" min="0" max="5" step="1" value="{{taste.salty}}" data-key="salty" bindchange="onTasteChange" block-color="#FF6B35" activeColor="#FF6B35"></slider>
+        <text class="taste-value">{{taste.salty}}/5</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 忌口管理 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="title">忌口管理</text>
+    </view>
+    <view class="card">
+      <view class="avoid-tags" wx:if="{{avoidList.length > 0}}">
+        <view class="avoid-tag" wx:for="{{avoidList}}" wx:key="*this" data-index="{{index}}" bind:tap="removeAvoid">
+          <text>{{item}}</text>
+          <text class="avoid-remove">✕</text>
+        </view>
+      </view>
+      <view class="avoid-input-row">
+        <input class="avoid-input" placeholder="输入忌口食材，如香菜" value="{{avoidInput}}" bindinput="onAvoidInput" bindconfirm="addAvoid"></input>
+        <view class="add-avoid-btn" bind:tap="addAvoid">
+          <text>添加</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 统计数据 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="title">我的数据</text>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-box card">
+        <text class="stat-num">{{stats.dishCount}}</text>
+        <text class="stat-label">菜品数</text>
+      </view>
+      <view class="stat-box card">
+        <text class="stat-num">{{stats.cookCount}}</text>
+        <text class="stat-label">做菜次数</text>
+      </view>
+      <view class="stat-box card">
+        <text class="stat-num">{{stats.preorderCount}}</text>
+        <text class="stat-label">预定次数</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能入口 -->
+  <view class="section">
+    <view class="menu-list card">
+      <view class="menu-item" bind:tap="goFamily">
+        <text class="menu-icon">👨‍👩‍👧‍👦</text>
+        <text class="menu-text">家庭管理</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-divider"></view>
+      <view class="menu-item" bind:tap="goPreorderList">
+        <text class="menu-icon">📋</text>
+        <text class="menu-text">预定总览</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-divider"></view>
+      <view class="menu-item" bind:tap="goPrivacy">
+        <text class="menu-icon">🔒</text>
+        <text class="menu-text">隐私政策</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-divider"></view>
+      <view class="menu-item" bind:tap="showAbout">
+        <text class="menu-icon">ℹ️</text>
+        <text class="menu-text">关于</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <view style="height: 60rpx;"></view>
+</view>

@@ -1,0 +1,177 @@
+/* pages/preorder-list/preorder-list.wxss */
+.container {
+  padding: 24rpx;
+}
+
+/* 日期栏 */
+.date-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 0 24rpx;
+  gap: 40rpx;
+}
+
+.date-arrow {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #FF6B35;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.1);
+}
+
+.current-date {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333333;
+}
+
+/* 成员卡片 */
+.member-card {
+  margin-bottom: 20rpx;
+}
+
+.member-header {
+  display: flex;
+  align-items: center;
+}
+
+.member-header.unordered {
+  opacity: 0.6;
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  background: #F7C59F;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.member-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.role-tag {
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 20rpx;
+}
+
+.role-admin { background: rgba(231, 76, 60, 0.15); color: #E74C3C; }
+.role-cook { background: rgba(255, 107, 53, 0.15); color: #FF6B35; }
+.role-eater { background: rgba(39, 174, 96, 0.15); color: #27AE60; }
+.role-child { background: rgba(247, 197, 159, 0.3); color: #D4885F; }
+
+.member-status {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 4rpx;
+}
+
+.remind-btn {
+  padding: 12rpx 28rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+/* 已选菜品 */
+.member-dishes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #FFF0E0;
+}
+
+.dish-thumb {
+  width: 120rpx;
+}
+
+.dish-thumb-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  background: #FFF8F3;
+}
+
+.dish-thumb-name {
+  display: block;
+  font-size: 22rpx;
+  color: #666666;
+  text-align: center;
+  margin-top: 8rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 备注 */
+.member-remark {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #FFF0E0;
+  font-size: 24rpx;
+}
+
+.remark-label {
+  color: #999999;
+}
+
+.remark-text {
+  color: #555555;
+}
+
+/* 统计 */
+.stats-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 28rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stat-num {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #FF6B35;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 4rpx;
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 48rpx;
+  background: #FFE8D6;
+}

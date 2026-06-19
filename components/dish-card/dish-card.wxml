@@ -1,0 +1,20 @@
+<!-- components/dish-card/dish-card.wxml -->
+<view class="dish-card" catch:tap="onTap" catch:longpress="onLongPress">
+  <view class="batch-check" wx:if="{{batchMode}}">
+    <view class="batch-check-circle {{selected ? 'checked' : ''}}">
+      <text wx:if="{{selected}}">✓</text>
+    </view>
+  </view>
+  <image class="dish-image" src="{{dish.image || '/assets/default-avatar.png'}}" mode="aspectFill" lazy-load></image>
+  <view class="dish-info">
+    <view class="dish-name">{{dish.name}}</view>
+    <view class="dish-meta">
+      <text class="meta-item difficulty-{{dish.difficulty}}">{{difficultyText}}</text>
+      <text class="meta-divider">·</text>
+      <text class="meta-item">{{dish.cookTime}}分钟</text>
+    </view>
+    <view class="dish-tags" wx:if="{{dish.tags && dish.tags.length}}">
+      <text class="tag" wx:for="{{dish.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+  </view>
+</view>

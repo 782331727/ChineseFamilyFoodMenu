@@ -1,0 +1,6 @@
+.container { padding: 24rpx; }
+.privacy-title { font-size: 36rpx; font-weight: 700; color: #333; margin-bottom: 8rpx; }
+.privacy-date { font-size: 24rpx; color: #AAA; margin-bottom: 32rpx; }
+.privacy-section { margin-bottom: 28rpx; }
+.section-title { display: block; font-size: 30rpx; font-weight: 600; color: #FF6B35; margin-bottom: 12rpx; }
+.section-text { display: block; font-size: 28rpx; color: #555; line-height: 1.8; }

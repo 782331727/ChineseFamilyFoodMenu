@@ -1,0 +1,8 @@
+<!-- components/empty-state/empty-state.wxml -->
+<view class="empty-state">
+  <image class="empty-icon" src="/assets/empty.png" mode="aspectFit" wx:if="{{icon}}"></image>
+  <view class="empty-emoji" wx:else>{{emoji || '🍽️'}}</view>
+  <view class="empty-text">{{text || '暂无数据'}}</view>
+  <view class="empty-sub" wx:if="{{subText}}">{{subText}}</view>
+  <view class="empty-btn" wx:if="{{btnText}}" bind:tap="onBtnTap">{{btnText}}</view>
+</view>

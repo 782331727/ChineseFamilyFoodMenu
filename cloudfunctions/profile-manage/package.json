@@ -1,0 +1,9 @@
+{
+  "name": "profile-manage",
+  "version": "1.0.0",
+  "description": "用户个人资料管理：获取/更新口味偏好、忌口、统计等",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

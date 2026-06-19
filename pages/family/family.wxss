@@ -1,0 +1,305 @@
+/* pages/family/family.wxss */
+.container {
+  padding: 24rpx;
+}
+
+/* 家庭信息 */
+.family-info-card {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 28rpx;
+}
+
+.family-icon {
+  font-size: 56rpx;
+  margin-right: 24rpx;
+}
+
+.family-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.family-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333333;
+}
+
+.family-members-count {
+  font-size: 26rpx;
+  color: #999999;
+  margin-top: 4rpx;
+}
+
+/* 邀请 */
+.invite-card {
+  padding: 0;
+}
+
+.invite-section {
+  padding: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.invite-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.invite-code-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.invite-code {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #FF6B35;
+  letter-spacing: 4rpx;
+}
+
+.copy-btn {
+  padding: 8rpx 24rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+  font-size: 24rpx;
+}
+
+.invite-divider {
+  height: 1rpx;
+  background: #FFF0E0;
+}
+
+.qr-btn {
+  padding: 12rpx 28rpx;
+  border-radius: 24rpx;
+  background: #FFF8F3;
+  color: #FF6B35;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+/* 成员列表 */
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 28rpx;
+  margin-bottom: 16rpx;
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  background: #F7C59F;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.member-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.role-tag {
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 20rpx;
+}
+
+.role-admin { background: rgba(231, 76, 60, 0.15); color: #E74C3C; }
+.role-cook { background: rgba(255, 107, 53, 0.15); color: #FF6B35; }
+.role-eater { background: rgba(39, 174, 96, 0.15); color: #27AE60; }
+.role-child { background: rgba(247, 197, 159, 0.3); color: #D4885F; }
+
+.me-tag {
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  background: #FF6B35;
+  color: #FFFFFF;
+  font-size: 18rpx;
+}
+
+.member-joined {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 4rpx;
+}
+
+.role-setting {
+  padding: 12rpx;
+}
+
+.setting-icon {
+  font-size: 32rpx;
+}
+
+/* ============ 未加入家庭：引导 ============ */
+.no-family-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 40rpx 48rpx;
+}
+
+.hero-icon {
+  font-size: 120rpx;
+  margin-bottom: 24rpx;
+}
+
+.hero-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 12rpx;
+}
+
+.hero-sub {
+  font-size: 26rpx;
+  color: #999999;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* 操作入口 */
+.family-actions {
+  display: flex;
+  flex-direction: column;
+  padding: 0 24rpx;
+  margin-top: 24rpx;
+}
+
+.action-btn {
+  width: 100%;
+  margin-bottom: 24rpx;
+  height: 88rpx;
+}
+
+/* 创建/加入表单 */
+.form-card {
+  padding: 32rpx 28rpx;
+}
+
+.form-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.form-desc {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 28rpx;
+}
+
+.form-row {
+  margin-bottom: 32rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 88rpx;
+  background: #FFF8F3;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.invite-input {
+  letter-spacing: 12rpx;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.form-btns {
+  display: flex;
+  gap: 24rpx;
+}
+
+.form-btn {
+  flex: 1;
+  height: 84rpx;
+}
+
+.form-btn.disabled {
+  opacity: 0.6;
+}
+
+/* 家庭名称编辑 */
+.family-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.family-name-edit {
+  font-size: 24rpx;
+  color: #CCC;
+}
+.family-name-edit:active {
+  color: #FF6B35;
+}
+
+/* 编辑弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+}
+.modal-card {
+  position: fixed;
+  top: 40%;
+  left: 60rpx;
+  right: 60rpx;
+  background: #FFF;
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx 32rpx;
+  z-index: 201;
+}
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333;
+  display: block;
+  margin-bottom: 24rpx;
+}
+.modal-input {
+  width: 100%;
+  height: 88rpx;
+  background: #FFF8F3;
+  border-radius: 14rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  color: #333;
+  box-sizing: border-box;
+  margin-bottom: 28rpx;
+}
+.modal-btns {
+  display: flex;
+  gap: 20rpx;
+}
+.modal-btn {
+  flex: 1;
+  height: 80rpx;
+}

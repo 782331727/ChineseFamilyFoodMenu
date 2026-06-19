@@ -1,0 +1,65 @@
+<!-- pages/preorder-list/preorder-list.wxml -->
+<view class="container">
+  <!-- 日期选择 -->
+  <view class="date-bar">
+    <view class="date-arrow" bind:tap="prevDate">‹</view>
+    <text class="current-date">{{displayDate}}</text>
+    <view class="date-arrow" bind:tap="nextDate">›</view>
+  </view>
+
+  <!-- 预定列表 -->
+  <block wx:if="{{memberList.length > 0}}">
+    <view class="member-card card" wx:for="{{memberList}}" wx:key="openid" wx:for-item="member">
+      <view class="member-header {{member.preordered ? '' : 'unordered'}}">
+        <image class="avatar" src="{{member.avatar || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="member-info">
+          <view class="member-name-row">
+            <text class="member-name">{{member.nickName}}</text>
+            <text class="role-tag role-{{member.role}}">{{member.roleText}}</text>
+          </view>
+          <text class="member-status" wx:if="{{member.preordered}}">已预定 {{member.dishes.length}} 道菜</text>
+          <text class="member-status" wx:else>未预定</text>
+        </view>
+        <view class="remind-btn" wx:if="{{!member.preordered}}" bind:tap="remindMember" data-openid="{{member.openid}}" data-name="{{member.nickName}}">
+          <text>提醒</text>
+        </view>
+      </view>
+
+      <!-- 已选菜品 -->
+      <view class="member-dishes" wx:if="{{member.preordered && member.dishes.length > 0}}">
+        <view class="dish-thumb" wx:for="{{member.dishes}}" wx:key="id" wx:for-item="dish">
+          <image class="dish-thumb-image" src="{{dish.image || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+          <text class="dish-thumb-name">{{dish.name}}</text>
+        </view>
+      </view>
+
+      <!-- 备注 -->
+      <view class="member-remark" wx:if="{{member.remark}}">
+        <text class="remark-label">备注：</text>
+        <text class="remark-text">{{member.remark}}</text>
+      </view>
+    </view>
+  </block>
+
+  <empty-state wx:else text="暂无家庭成员" subText="先去家庭管理添加成员吧"></empty-state>
+
+  <!-- 统计 -->
+  <view class="stats-card card" wx:if="{{memberList.length > 0}}">
+    <view class="stat-item">
+      <text class="stat-num">{{stats.total}}</text>
+      <text class="stat-label">总人数</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num">{{stats.preordered}}</text>
+      <text class="stat-label">已预定</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num">{{stats.dishCount}}</text>
+      <text class="stat-label">总菜品数</text>
+    </view>
+  </view>
+
+  <view style="height: 60rpx;"></view>
+</view>

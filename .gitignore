@@ -1,0 +1,10 @@
+node_modules/
+miniprogram_npm/
+.DS_Store
+Thumbs.db
+nul
+*.log
+.workbuddy/
+config/
+.unused/
+cloudfunctions/*/node_modules/

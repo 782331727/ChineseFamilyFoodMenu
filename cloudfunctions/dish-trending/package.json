@@ -1,0 +1,9 @@
+{
+  "name": "dish-trending",
+  "version": "1.0.0",
+  "description": "常点排行 - 综合预定次数和近期趋势的智能推荐",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

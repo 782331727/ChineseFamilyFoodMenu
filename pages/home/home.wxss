@@ -1,0 +1,365 @@
+/* pages/home/home.wxss */
+.welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0 32rpx;
+}
+
+.welcome-text {
+  flex: 1;
+}
+
+.greeting {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #333333;
+}
+
+.date-text {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+.welcome-avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  border: 4rpx solid #F7C59F;
+}
+
+.section {
+  margin-bottom: 32rpx;
+}
+
+/* 今日菜单 */
+.meal-cards {
+  display: flex;
+  gap: 16rpx;
+}
+
+.meal-card {
+  flex: 1;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.08);
+}
+
+.meal-card.morning {
+  border-top: 6rpx solid #FFD700;
+}
+
+.meal-card.noon {
+  border-top: 6rpx solid #FF6B35;
+}
+
+.meal-card.evening {
+  border-top: 6rpx solid #6A5ACD;
+}
+
+.meal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.meal-icon {
+  font-size: 36rpx;
+  margin-right: 8rpx;
+}
+
+.meal-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.meal-dish {
+  padding: 8rpx 0;
+}
+
+.meal-dish-name {
+  font-size: 26rpx;
+  color: #555555;
+}
+
+.meal-empty {
+  padding: 16rpx 0;
+}
+
+.meal-empty-text {
+  font-size: 24rpx;
+  color: #CCCCCC;
+}
+
+/* 预定摘要 */
+.preorder-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.preorder-members {
+  display: flex;
+  align-items: center;
+}
+
+.member-avatar {
+  margin-right: -16rpx;
+  border: 4rpx solid #FFFFFF;
+}
+
+.more-members {
+  margin-left: 24rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.preorder-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preorder-count {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FF6B35;
+}
+
+.preorder-hint {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+/* 预定菜品列表 */
+.preorder-dishes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #FFF0E0;
+}
+
+.preorder-dish-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #FFF8F3;
+  border-radius: 12rpx;
+  padding: 8rpx 16rpx;
+}
+
+.preorder-dish-name {
+  font-size: 24rpx;
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+.preorder-dish-booker {
+  font-size: 20rpx;
+  color: #CCC;
+}
+
+/* 快捷操作 */
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.quick-btn {
+  flex: 1;
+  min-width: 160rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 28rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.08);
+}
+
+.quick-icon {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+}
+
+.quick-text {
+  font-size: 26rpx;
+  color: #555555;
+  font-weight: 500;
+}
+
+.ai-btn {
+  background: linear-gradient(135deg, #FFF8E1, #FFFFFF);
+}
+
+/* 未加入家庭引导卡片 */
+.no-family-card {
+  display: flex;
+  flex-direction: column;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #FFF8F3, #FFFFFF);
+  border: 2rpx dashed #FFD5B8;
+}
+
+.no-family-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.no-family-icon {
+  font-size: 56rpx;
+  margin-right: 20rpx;
+}
+
+.no-family-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.no-family-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #FF6B35;
+  margin-bottom: 6rpx;
+}
+
+.no-family-sub {
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 1.5;
+}
+
+.no-family-btn {
+  align-self: flex-end;
+  padding: 12rpx 32rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF8B5E);
+  color: #FFFFFF;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.no-family-btns {
+  display: flex;
+  gap: 16rpx;
+  align-self: flex-end;
+}
+
+.no-family-btns .no-family-btn {
+  align-self: auto;
+}
+
+.no-family-btns .join-btn {
+  background: transparent;
+  color: #FF6B35;
+  border: 2rpx solid #FF6B35;
+}
+
+/* 视图切换 */
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.view-toggle {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 16rpx;
+  background: #FFF0E0;
+  color: #AAA;
+}
+.view-toggle.active {
+  background: #FF6B35;
+  color: #FFF;
+}
+
+/* 做饭人 */
+.meal-cook {
+  font-size: 20rpx;
+  color: #BBB;
+  margin-left: 8rpx;
+}
+
+/* 空菜单提示 */
+.empty-meal-hint {
+  text-align: center;
+  padding: 48rpx 0;
+  font-size: 26rpx;
+  color: #BBB;
+}
+.empty-meal-hint .empty-link {
+  color: #FF6B35;
+  margin-left: 8rpx;
+  font-weight: 600;
+}
+
+/* 周视图 */
+.week-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.week-day {
+  background: #FFF;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(255,107,53,0.06);
+}
+.week-day-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10rpx;
+}
+.week-day-label {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #333;
+}
+.week-day-week {
+  font-size: 24rpx;
+  color: #AAA;
+}
+.week-empty {
+  font-size: 24rpx;
+  color: #DDD;
+}
+.week-meal-row {
+  display: flex;
+  gap: 8rpx;
+  padding: 6rpx 0;
+}
+.week-meal-type {
+  font-size: 26rpx;
+}
+.week-meal-names text {
+  font-size: 26rpx;
+  color: #555;
+  margin-right: 12rpx;
+}
+
+/* 做菜计时卡片 */
+.cooking-card {
+  background: linear-gradient(135deg, #FFF3E6, #FFFFFF);
+  border: 2rpx solid #FFD5B8;
+  margin-bottom: 24rpx;
+}
+.cooking-row {
+  display: flex;
+  align-items: center;
+}
+.cooking-icon { font-size: 48rpx; margin-right: 16rpx; }
+.cooking-info { flex: 1; display: flex; flex-direction: column; }
+.cooking-dish { font-size: 30rpx; font-weight: 700; color: #333; }
+.cooking-chef { font-size: 24rpx; color: #999; margin-top: 4rpx; }
+.cooking-timer { margin-right: 16rpx; }
+.cooking-elapsed { font-size: 36rpx; font-weight: 700; color: #FF6B35; font-family: 'Courier New', monospace; }
+.cooking-actions { margin-top: 16rpx; display: flex; justify-content: center; }
+.cooking-done-btn { padding: 12rpx 48rpx; }

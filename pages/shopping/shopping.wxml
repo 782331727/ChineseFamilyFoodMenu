@@ -1,0 +1,137 @@
+<!-- pages/shopping/shopping.wxml -->
+<view class="container">
+  <!-- 日期范围 -->
+  <view class="date-range card">
+    <text class="range-label">清单周期</text>
+    <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+      <text class="range-value">{{startDate}} ~ {{endDate}}</text>
+    </picker>
+    <text class="refresh-link" bind:tap="prevWeek">◀</text>
+    <text class="refresh-link" bind:tap="nextWeek">▶</text>
+  </view>
+
+  <!-- 冰箱库存 -->
+  <view class="inventory-bar card" wx:if="{{inventoryItems.length > 0 || showInventory}}">
+    <view class="inventory-bar-row">
+      <text class="inventory-bar-label">🧊 冰箱</text>
+      <view class="inventory-bar-tags">
+        <text class="inventory-bar-tag" wx:for="{{inventoryItems}}" wx:key="*this">{{item}} ✕</text>
+      </view>
+      <text class="refresh-link" bind:tap="toggleInventory">编辑</text>
+    </view>
+    <view class="inventory-edit" wx:if="{{showInventory}}">
+      <textarea class="form-textarea" placeholder="用逗号分隔，如：鸡蛋, 西红柿, 排骨" value="{{inventoryText}}" bindinput="onInventoryInput"></textarea>
+    </view>
+  </view>
+
+  <!-- AI 生成入口 -->
+  <view class="ai-generate-card card" bind:tap="generateByAI" wx:if="{{canManage}}">
+    <view class="ai-generate-row">
+      <text class="ai-generate-icon">🤖</text>
+      <view class="ai-generate-text">
+        <text class="ai-generate-title">AI 智能生成采购清单</text>
+        <text class="ai-generate-sub">根据本周菜单自动汇总食材，减去冰箱库存</text>
+      </view>
+      <text class="ai-generate-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 手动添加入口 -->
+  <view class="manual-add-card card" bind:tap="showManualAdd" wx:if="{{!showAddPanel && canManage}}">
+    <view class="manual-add-row">
+      <text class="manual-add-icon">✏️</text>
+      <text class="manual-add-text">手动添加食材</text>
+      <text class="manual-add-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 手动添加表单 -->
+  <view class="card add-item-card" wx:if="{{showAddPanel}}">
+    <view class="form-label">添加食材</view>
+    <view class="add-item-row">
+      <input class="add-input name-input" placeholder="食材名" value="{{addName}}" bindinput="onAddNameInput" maxlength="20"></input>
+      <input class="add-input amount-input" placeholder="用量" value="{{addAmount}}" bindinput="onAddAmountInput" maxlength="20"></input>
+    </view>
+    <view class="form-row">
+      <text class="form-label-sm">分类</text>
+      <scroll-view class="cat-scroll" scroll-x enable-flex>
+        <view class="cat-chip {{addCategory === c ? 'active' : ''}}" wx:for="{{categoryOptions}}" wx:key="*this" data-cat="{{c}}" wx:for-item="c" bind:tap="selectAddCategory">{{c}}</view>
+      </scroll-view>
+    </view>
+    <view class="add-item-btns">
+      <view class="btn-outline add-btn" bind:tap="cancelAdd"><text>取消</text></view>
+      <view class="btn-primary add-btn" bind:tap="confirmAddItem"><text>添加</text></view>
+    </view>
+  </view>
+
+  <!-- 冰箱库存输入（AI 生成时用） -->
+  <view class="card inventory-card" wx:if="{{showInventory}}">
+    <view class="form-label">冰箱现有库存（可选，用逗号分隔）</view>
+    <textarea class="form-textarea" placeholder="如：鸡蛋、西红柿、排骨" value="{{inventoryText}}" bindinput="onInventoryInput"></textarea>
+    <view class="inventory-btns">
+      <view class="btn-outline inv-btn" bind:tap="cancelInventory"><text>取消</text></view>
+      <view class="btn-primary inv-btn {{aiGenerating ? 'disabled' : ''}}" bind:tap="confirmGenerateAI"><text>{{aiGenerating ? '生成中...' : '开始生成'}}</text></view>
+    </view>
+  </view>
+
+  <!-- 批量操作工具栏 -->
+  <view class="batch-toolbar" wx:if="{{hasData}}">
+    <view class="batch-btn" bind:tap="selectAll">
+      <text class="batch-btn-icon">{{allChecked ? '☐' : '☑'}}</text>
+      <text>{{allChecked ? '取消全选' : '全选'}}</text>
+    </view>
+    <view class="batch-btn" bind:tap="uncheckAll" wx:if="{{totalChecked > 0}}">
+      <text class="batch-btn-icon">↩</text>
+      <text>取消勾选 ({{totalChecked}})</text>
+    </view>
+    <view class="batch-btn" bind:tap="shareList" wx:if="{{hasData}}">
+      <text class="batch-btn-icon">📋</text>
+      <text>复制清单</text>
+    </view>
+  </view>
+
+  <!-- 采购清单 -->
+  <block wx:if="{{hasData}}">
+    <view class="category-section" wx:for="{{shoppingList}}" wx:key="category">
+      <view class="category-header">
+        <text class="category-icon">{{item.icon}}</text>
+        <text class="category-name">{{item.category}}</text>
+        <text class="category-count">{{item.checkedCount}}/{{item.items.length}}</text>
+        <view class="add-item-btn" bind:tap="showAddItem" data-cat="{{item.category}}" wx:if="{{canManage}}">
+          <text>＋</text>
+        </view>
+      </view>
+      <view class="item-list card">
+        <view class="shopping-item {{item2.checked ? 'checked' : ''}}" wx:for="{{item.items}}" wx:key="_key" wx:for-item="item2" wx:for-index="idx2">
+          <view class="check-circle {{item2.checked ? 'checked' : ''}}" catch:tap="toggleItem" data-cat="{{item.category}}" data-index="{{idx2}}">
+            <text wx:if="{{item2.checked}}">✓</text>
+          </view>
+          <view class="item-info" bind:tap="toggleItem" data-cat="{{item.category}}" data-index="{{idx2}}">
+            <text class="item-name">{{item2.name}}</text>
+            <text class="item-amount">{{item2.amount}}</text>
+          </view>
+          <text class="item-price" wx:if="{{item2.estimatedPrice}}">¥{{item2.estimatedPrice}}</text>
+          <view class="delete-item-btn" catch:tap="deleteItem" data-cat="{{item.category}}" data-index="{{idx2}}" wx:if="{{canManage}}">
+            <text>✕</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部统计 -->
+    <view class="summary-bar">
+      <view class="summary-info">
+        <text class="summary-label">预计花费</text>
+        <text class="summary-price">¥{{totalPrice}}</text>
+      </view>
+      <view class="summary-info">
+        <text class="summary-label">已勾选</text>
+        <text class="summary-count">{{totalChecked}}/{{totalItems}}</text>
+      </view>
+    </view>
+  </block>
+
+  <empty-state wx:else text="暂无采购清单" subText="预定菜品后将自动生成" emoji="🛒"></empty-state>
+
+  <view style="height: 120rpx;"></view>
+</view>

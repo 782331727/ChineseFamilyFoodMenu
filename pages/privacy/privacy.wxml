@@ -1,0 +1,27 @@
+<!-- pages/privacy/privacy.wxml -->
+<view class="container">
+  <view class="card">
+    <view class="privacy-title">隐私政策</view>
+    <view class="privacy-date">更新日期：2026年6月19日</view>
+    <view class="privacy-section">
+      <text class="section-title">一、信息收集</text>
+      <text class="section-text">本小程序通过微信云开发获取您的微信OPENID用于用户身份识别。在您授权后，我们会获取您的微信昵称和头像用于家庭内展示。</text>
+    </view>
+    <view class="privacy-section">
+      <text class="section-title">二、信息使用</text>
+      <text class="section-text">您的个人信息仅用于：\n1. 家庭成员身份识别与角色管理\n2. 菜品预定、菜单安排等核心功能\n3. 家庭内部菜品偏好推荐\n我们不会将您的信息分享给任何第三方。</text>
+    </view>
+    <view class="privacy-section">
+      <text class="section-title">三、数据存储</text>
+      <text class="section-text">所有数据存储在腾讯云开发环境(CloudBase)中，仅有您所属的家庭成员可以访问。您可以在"我的"页面修改昵称和头像。</text>
+    </view>
+    <view class="privacy-section">
+      <text class="section-title">四、AI服务说明</text>
+      <text class="section-text">本小程序的AI菜谱推荐功能通过调用第三方大模型服务实现，传输的内容仅包括您输入的食材名称和基本偏好，不包含个人身份信息。</text>
+    </view>
+    <view class="privacy-section">
+      <text class="section-title">五、联系方式</text>
+      <text class="section-text">如对隐私政策有任何疑问，请联系小程序管理员。</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,273 @@
+/* pages/profile/profile.wxss */
+.container {
+  padding: 24rpx;
+}
+
+/* 用户信息 */
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.08);
+}
+
+.avatar-lg {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 4rpx solid #F7C59F;
+  margin-right: 24rpx;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #333333;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 6rpx 24rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  align-self: flex-start;
+}
+
+.role-admin { background: rgba(231, 76, 60, 0.15); color: #E74C3C; }
+.role-cook { background: rgba(255, 107, 53, 0.15); color: #FF6B35; }
+.role-eater { background: rgba(39, 174, 96, 0.15); color: #27AE60; }
+.role-child { background: rgba(247, 197, 159, 0.3); color: #D4885F; }
+
+/* 头像编辑 */
+.avatar-wrap {
+  position: relative;
+  margin-right: 24rpx;
+}
+.avatar-edit-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40rpx;
+  background: rgba(0,0,0,0.45);
+  border-radius: 0 0 60rpx 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-edit-mask text {
+  font-size: 20rpx;
+  color: #FFF;
+}
+
+/* 昵称编辑 */
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.edit-icon {
+  font-size: 24rpx;
+  color: #CCC;
+}
+
+/* 编辑弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+}
+.modal-card {
+  position: fixed;
+  top: 40%;
+  left: 60rpx;
+  right: 60rpx;
+  background: #FFF;
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx 32rpx;
+  z-index: 201;
+}
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333;
+  display: block;
+  margin-bottom: 24rpx;
+}
+.modal-input {
+  width: 100%;
+  height: 88rpx;
+  background: #FFF8F3;
+  border-radius: 14rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  color: #333;
+  box-sizing: border-box;
+  margin-bottom: 28rpx;
+}
+.modal-btns {
+  display: flex;
+  gap: 20rpx;
+}
+.modal-btn {
+  flex: 1;
+  height: 80rpx;
+}
+
+.login-btn {
+  padding: 16rpx 40rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF8B5E);
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 口味偏好 */
+.taste-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #FFF0E0;
+}
+
+.taste-item:last-child {
+  border-bottom: none;
+}
+
+.taste-label {
+  width: 140rpx;
+  font-size: 28rpx;
+  color: #555555;
+}
+
+.taste-slider {
+  flex: 1;
+  margin: 0 16rpx;
+}
+
+.taste-value {
+  width: 60rpx;
+  text-align: right;
+  font-size: 24rpx;
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+/* 忌口 */
+.avoid-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.avoid-tag {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 24rpx;
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  color: #E74C3C;
+}
+
+.avoid-remove {
+  font-size: 20rpx;
+  color: #999999;
+}
+
+.avoid-input-row {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+}
+
+.avoid-input {
+  flex: 1;
+  height: 72rpx;
+  background: #FFF8F3;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.add-avoid-btn {
+  padding: 16rpx 32rpx;
+  border-radius: 12rpx;
+  background: #FF6B35;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+/* 统计 */
+.stats-grid {
+  display: flex;
+  gap: 16rpx;
+}
+
+.stat-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28rpx 0;
+}
+
+.stat-num {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #FF6B35;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+/* 菜单列表 */
+.menu-list {
+  padding: 0 28rpx;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 0;
+}
+
+.menu-divider {
+  height: 1rpx;
+  background: #FFF0E0;
+}
+
+.menu-icon {
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.menu-text {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333333;
+}
+
+.menu-arrow {
+  font-size: 36rpx;
+  color: #CCCCCC;
+}

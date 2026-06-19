@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "dish-card": "/components/dish-card/dish-card",
+    "empty-state": "/components/empty-state/empty-state"
+  },
+  "navigationBarTitleText": "菜品库"
+}

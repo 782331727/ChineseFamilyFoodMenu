@@ -1,0 +1,117 @@
+<!-- pages/family/family.wxml -->
+<view class="container">
+
+  <!-- ============ 已加入家庭 ============ -->
+  <block wx:if="{{hasFamily}}">
+    <!-- 家庭信息 -->
+    <view class="card family-info-card">
+      <view class="family-icon">🏠</view>
+      <view class="family-detail">
+        <view class="family-name-row">
+          <text class="family-name">{{familyInfo.name || '我的家庭'}}</text>
+          <text class="family-name-edit" wx:if="{{isAdmin}}" bind:tap="editFamilyName">✎</text>
+        </view>
+        <text class="family-members-count">{{memberList.length}} 位成员</text>
+      </view>
+    </view>
+
+    <!-- 邀请 -->
+    <view class="card invite-card">
+      <view class="invite-section">
+        <text class="invite-label">邀请码</text>
+        <view class="invite-code-row">
+          <text class="invite-code">{{familyInfo.inviteCode || '------'}}</text>
+          <view class="copy-btn" bind:tap="copyInviteCode" wx:if="{{familyInfo.inviteCode}}">
+            <text>复制</text>
+          </view>
+        </view>
+      </view>
+      <view class="invite-divider"></view>
+      <view class="invite-section">
+        <text class="invite-label">二维码</text>
+        <view class="qr-btn" bind:tap="showQRCode">
+          <text>查看二维码</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成员列表 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="title">家庭成员</text>
+      </view>
+      <view class="card member-item" wx:for="{{memberList}}" wx:key="openid">
+        <image class="avatar" src="{{item.avatarUrl || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="member-info">
+          <view class="member-name-row">
+            <text class="member-name">{{item.nickName}}</text>
+            <text class="role-tag role-{{item.role}}">{{item.roleText}}</text>
+            <text class="me-tag" wx:if="{{item.isMe}}">我</text>
+          </view>
+          <text class="member-joined">加入于 {{item.joinDate || '未知'}}</text>
+        </view>
+        <view class="role-setting" wx:if="{{canManage}}" bind:tap="showRolePicker" data-openid="{{item.openid}}" data-name="{{item.nickName}}" data-role="{{item.role}}">
+          <text class="setting-icon">⚙️</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ============ 未加入家庭：引导创建/加入 ============ -->
+  <block wx:else>
+    <view class="no-family-hero">
+      <view class="hero-icon">🏠</view>
+      <text class="hero-title">欢迎使用张姐的私房菜谱</text>
+      <text class="hero-sub">创建或加入一个家庭，即可开始管理你的菜单</text>
+    </view>
+
+    <!-- 默认操作入口 -->
+    <view class="family-actions" wx:if="{{!activePanel}}">
+      <view class="btn-primary action-btn" bind:tap="showCreatePanel">
+        <text>创建家庭</text>
+      </view>
+      <view class="btn-outline action-btn" bind:tap="showJoinPanel">
+        <text>加入家庭（输入邀请码）</text>
+      </view>
+    </view>
+
+    <!-- 创建家庭表单 -->
+    <view class="card form-card" wx:if="{{activePanel === 'create'}}">
+      <view class="form-title">创建家庭</view>
+      <view class="form-desc">创建后你将成为「家长」，可邀请家人加入</view>
+      <view class="form-row">
+        <input class="form-input" placeholder="请输入家庭名称，如「张家」" value="{{createName}}" bindinput="onCreateNameInput" maxlength="20"></input>
+      </view>
+      <view class="form-btns">
+        <view class="btn-outline form-btn" bind:tap="cancelPanel"><text>取消</text></view>
+        <view class="btn-primary form-btn {{submitting ? 'disabled' : ''}}" bind:tap="createFamily"><text>{{submitting ? '创建中...' : '确认创建'}}</text></view>
+      </view>
+    </view>
+
+    <!-- 加入家庭表单 -->
+    <view class="card form-card" wx:if="{{activePanel === 'join'}}">
+      <view class="form-title">加入家庭</view>
+      <view class="form-desc">请向家人索要 6 位邀请码</view>
+      <view class="form-row">
+        <input class="form-input invite-input" placeholder="输入邀请码" value="{{joinCode}}" bindinput="onJoinCodeInput" maxlength="6"></input>
+      </view>
+      <view class="form-btns">
+        <view class="btn-outline form-btn" bind:tap="cancelPanel"><text>取消</text></view>
+        <view class="btn-primary form-btn {{submitting ? 'disabled' : ''}}" bind:tap="joinFamily"><text>{{submitting ? '加入中...' : '确认加入'}}</text></view>
+      </view>
+    </view>
+  </block>
+
+  <view style="height: 60rpx;"></view>
+
+  <!-- 编辑家庭名称弹窗 -->
+  <view class="modal-mask" wx:if="{{showNameModal}}" bind:tap="closeNameModal"></view>
+  <view class="modal-card" wx:if="{{showNameModal}}">
+    <text class="modal-title">修改家庭名称</text>
+    <input class="modal-input" placeholder="输入新名称" value="{{editName}}" bindinput="onNameInput" maxlength="20"></input>
+    <view class="modal-btns">
+      <view class="btn-outline modal-btn" bind:tap="closeNameModal"><text>取消</text></view>
+      <view class="btn-primary modal-btn" bind:tap="saveFamilyName"><text>保存</text></view>
+    </view>
+  </view>
+</view>

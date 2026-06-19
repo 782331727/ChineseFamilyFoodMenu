@@ -1,0 +1,10 @@
+{
+  "name": "ai-shopping",
+  "version": "1.0.0",
+  "description": "AI 生成采购清单",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "axios": "^1.7.0"
+  }
+}

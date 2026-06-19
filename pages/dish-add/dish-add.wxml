@@ -1,0 +1,194 @@
+<!-- pages/dish-add/dish-add.wxml -->
+<!-- 顶部Tab切换 -->
+<view class="tab-bar">
+  <view class="tab-item {{currentTab === 'ai' ? 'active' : ''}}" data-tab="ai" bind:tap="switchTab">
+    <text>🤖 AI生成</text>
+  </view>
+  <view class="tab-item {{currentTab === 'manual' ? 'active' : ''}}" data-tab="manual" bind:tap="switchTab">
+    <text>✍️ 手动添加</text>
+  </view>
+</view>
+
+<!-- AI生成 -->
+<view class="container" wx:if="{{currentTab === 'ai'}}">
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">场景选择</text>
+      <view class="scene-list">
+        <view class="scene-item {{aiForm.scene === item.value ? 'active' : ''}}" wx:for="{{scenes}}" wx:key="value" data-value="{{item.value}}" bind:tap="selectScene">
+          <text class="scene-emoji">{{item.emoji}}</text>
+          <text class="scene-name">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">餐次</text>
+      <view class="scene-list">
+        <view class="scene-item {{aiForm.meal === item.value ? 'active' : ''}}" wx:for="{{mealOptions}}" wx:key="value" data-value="{{item.value}}" bind:tap="selectMeal">
+          <text class="scene-emoji">{{item.emoji}}</text>
+          <text class="scene-name">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">食材（可选）</text>
+      <textarea class="form-textarea" placeholder="输入你有的食材，用逗号分隔，如：土豆, 番茄, 鸡蛋" value="{{aiForm.ingredients}}" bindinput="onAiIngredientInput"></textarea>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">用餐人数</text>
+      <view class="people-selector">
+        <view class="people-btn" bind:tap="decreasePeople">−</view>
+        <text class="people-count">{{aiForm.people}}</text>
+        <view class="people-btn" bind:tap="increasePeople">+</view>
+      </view>
+    </view>
+
+    <view class="btn-primary generate-btn" bind:tap="generateDishes">
+      <text>生成菜谱推荐</text>
+    </view>
+  </view>
+
+  <!-- AI生成结果 -->
+  <view class="ai-results" wx:if="{{aiResults.length > 0}}">
+    <view class="section-header">
+      <text class="title">推荐菜品</text>
+      <text class="text-hint">{{aiResults.length}}道</text>
+    </view>
+
+    <view class="ai-result-card card" wx:for="{{aiResults}}" wx:key="index">
+      <view class="ai-dish-name">{{item.name}}</view>
+      <view class="ai-dish-desc">{{item.description}}</view>
+      <view class="ai-dish-info">
+        <text class="tag" wx:if="{{item.difficulty}}">{{item.difficulty}}</text>
+        <text class="tag" wx:if="{{item.cookTime}}">{{item.cookTime}}分钟</text>
+        <text class="tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+      </view>
+      <view class="ai-dish-ingredients" wx:if="{{item.ingredients && item.ingredients.length}}">
+        <text class="ingredient-label">食材：</text>
+        <text class="ingredient-text">{{item.ingredients}}</text>
+      </view>
+      <view class="ai-dish-steps" wx:if="{{item.steps && item.steps.length}}">
+        <text class="ingredient-label">做法：</text>
+        <view class="step-line" wx:for="{{item.steps}}" wx:for-item="step" wx:key="index">
+          <text>{{index + 1}}. {{step}}</text>
+        </view>
+      </view>
+      <view class="btn-primary add-to-lib-btn" bind:tap="addAiDishToLib" data-index="{{index}}">
+        <text>加入菜品库</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="ai-loading" wx:if="{{aiGenerating}}">
+    <text class="ai-loading-text">🤖 AI正在思考中...</text>
+  </view>
+</view>
+
+<!-- 手动添加 -->
+<view class="container" wx:if="{{currentTab === 'manual'}}">
+  <view class="card">
+    <!-- 菜名 -->
+    <view class="form-group">
+      <text class="form-label">菜名</text>
+      <input class="form-input" placeholder="输入菜品名称" value="{{form.name}}" bindinput="onInput" data-field="name"></input>
+    </view>
+
+    <!-- 图片上传 -->
+    <view class="form-group">
+      <text class="form-label">菜品图片</text>
+      <view class="image-uploader">
+        <image class="preview-image" wx:if="{{form.image}}" src="{{form.image}}" mode="aspectFill"></image>
+        <view class="upload-btn" bind:tap="chooseImage" wx:if="{{!form.image}}">
+          <text class="upload-icon">+</text>
+          <text class="upload-text">上传图片</text>
+        </view>
+        <view class="remove-image" wx:if="{{form.image}}" bind:tap="removeImage">✕</view>
+      </view>
+    </view>
+
+    <!-- 分类 -->
+    <view class="form-group">
+      <text class="form-label">分类</text>
+      <picker mode="selector" range="{{categoryOptions}}" value="{{form.categoryIndex}}" bindchange="onCategoryChange">
+        <view class="picker-value">{{categoryOptions[form.categoryIndex]}}</view>
+      </picker>
+    </view>
+
+    <!-- 难度 -->
+    <view class="form-group">
+      <text class="form-label">难度</text>
+      <view class="difficulty-selector">
+        <view class="difficulty-item {{form.difficulty === item.value ? 'active' : ''}}" wx:for="{{difficultyOptions}}" wx:key="value" data-value="{{item.value}}" bind:tap="selectDifficulty">
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 公开开关 -->
+    <view class="form-group">
+      <view class="public-row">
+        <view class="public-text">
+          <text class="form-label">公开菜品</text>
+          <text class="form-hint">开启后外部用户也能看到这道菜</text>
+        </view>
+        <switch checked="{{form.isPublic}}" bindchange="togglePublic" color="#FF6B35"></switch>
+      </view>
+    </view>
+
+    <!-- 用时 -->
+    <view class="form-group">
+      <text class="form-label">用时（分钟）</text>
+      <input class="form-input" type="number" placeholder="如 30" value="{{form.cookTime}}" bindinput="onInput" data-field="cookTime"></input>
+    </view>
+
+    <!-- 标签 -->
+    <view class="form-group">
+      <text class="form-label">标签</text>
+      <view class="tags-input-area">
+        <view class="tag-item" wx:for="{{form.tags}}" wx:key="*this" data-index="{{index}}" bind:tap="removeTag">
+          <text>{{item}}</text>
+          <text class="tag-remove">✕</text>
+        </view>
+        <input class="tag-input" placeholder="输入标签后回车" value="{{tagInput}}" bindinput="onTagInput" bindconfirm="addTag"></input>
+      </view>
+    </view>
+
+    <!-- 食材 -->
+    <view class="form-group">
+      <view class="form-label-row">
+        <text class="form-label">食材清单</text>
+        <text class="add-link" bind:tap="addIngredient">+ 添加</text>
+      </view>
+      <view class="ingredient-form" wx:for="{{form.ingredients}}" wx:key="index">
+        <input class="ingredient-name-input" placeholder="食材名" value="{{item.name}}" bindinput="onIngredientInput" data-index="{{index}}" data-field="name"></input>
+        <input class="ingredient-amount-input" placeholder="用量" value="{{item.amount}}" bindinput="onIngredientInput" data-index="{{index}}" data-field="amount"></input>
+        <text class="remove-btn" bind:tap="removeIngredient" data-index="{{index}}">✕</text>
+      </view>
+    </view>
+
+    <!-- 步骤 -->
+    <view class="form-group">
+      <view class="form-label-row">
+        <text class="form-label">做法步骤</text>
+        <text class="add-link" bind:tap="addStep">+ 添加</text>
+      </view>
+      <view class="step-form" wx:for="{{form.steps}}" wx:key="index">
+        <text class="step-index">{{index + 1}}</text>
+        <textarea class="step-textarea" placeholder="描述这一步的做法" value="{{item}}" bindinput="onStepInput" data-index="{{index}}"></textarea>
+        <text class="remove-btn" bind:tap="removeStep" data-index="{{index}}">✕</text>
+      </view>
+    </view>
+  </view>
+
+  <view style="height: 140rpx;"></view>
+
+  <!-- 底部保存 -->
+  <view class="bottom-bar">
+    <view class="btn-primary save-btn" bind:tap="saveDish">
+      <text>{{editingId ? '保存修改' : '保存菜品'}}</text>
+    </view>
+  </view>
+</view>

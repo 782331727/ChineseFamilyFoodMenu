@@ -1,0 +1,64 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/dishes/dishes",
+    "pages/preorder/preorder",
+    "pages/shopping/shopping",
+    "pages/profile/profile",
+    "pages/dish-detail/dish-detail",
+    "pages/dish-add/dish-add",
+    "pages/preorder-list/preorder-list",
+    "pages/family/family",
+    "pages/privacy/privacy"
+  ],
+  "window": {
+    "backgroundColor": "#FFF8F3",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FF6B35",
+    "navigationBarTitleText": "张姐的私房菜谱",
+    "navigationBarTextStyle": "white",
+    "enablePullDownRefresh": true
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FF6B35",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页",
+        "iconPath": "assets/icons/home.png",
+        "selectedIconPath": "assets/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/dishes/dishes",
+        "text": "菜品库",
+        "iconPath": "assets/icons/dishes.png",
+        "selectedIconPath": "assets/icons/dishes-active.png"
+      },
+      {
+        "pagePath": "pages/preorder/preorder",
+        "text": "预定",
+        "iconPath": "assets/icons/order.png",
+        "selectedIconPath": "assets/icons/order-active.png"
+      },
+      {
+        "pagePath": "pages/shopping/shopping",
+        "text": "采购",
+        "iconPath": "assets/icons/cart.png",
+        "selectedIconPath": "assets/icons/cart-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/icons/profile.png",
+        "selectedIconPath": "assets/icons/profile-active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "cloud": true,
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

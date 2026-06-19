@@ -1,0 +1,187 @@
+/* pages/dishes/dishes.wxss */
+.container {
+  padding: 24rpx;
+  padding-bottom: 200rpx;
+}
+
+/* 搜索栏 */
+.search-bar {
+  margin-bottom: 20rpx;
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 40rpx;
+  padding: 16rpx 28rpx;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.06);
+}
+
+.search-icon {
+  font-size: 30rpx;
+  margin-right: 16rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.search-clear {
+  font-size: 28rpx;
+  color: #CCCCCC;
+  padding: 8rpx;
+}
+
+/* 分类筛选 */
+.category-bar {
+  display: flex;
+  white-space: nowrap;
+  margin-bottom: 24rpx;
+  padding: 4rpx 0;
+}
+
+.category-item {
+  display: inline-block;
+  padding: 12rpx 32rpx;
+  margin-right: 16rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: #666666;
+  background: #FFFFFF;
+  transition: all 0.2s;
+}
+
+.category-item.active {
+  background: linear-gradient(135deg, #FF6B35, #FF8B5E);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+/* 菜品列表 */
+.dish-list {
+  margin-top: 8rpx;
+}
+
+/* 加载 */
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 40rpx;
+}
+
+.loading-text {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+.no-more {
+  display: flex;
+  justify-content: center;
+  padding: 32rpx;
+}
+
+.no-more-text {
+  font-size: 24rpx;
+  color: #CCCCCC;
+}
+
+/* 批量管理按钮 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.search-input-wrap {
+  flex: 1;
+}
+.batch-toggle {
+  padding: 12rpx 20rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #FF6B35;
+  border: 1rpx solid #FF6B35;
+  margin-left: 12rpx;
+  white-space: nowrap;
+}
+
+/* 批量操作底部栏 */
+.batch-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFF;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0,0,0,0.08);
+  z-index: 110;
+}
+.batch-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.batch-bar-row:last-child {
+  margin-bottom: 0;
+}
+.batch-select-actions {
+  display: flex;
+  gap: 24rpx;
+}
+.batch-select-link {
+  font-size: 26rpx;
+  color: #FF6B35;
+}
+.batch-selected-count {
+  font-size: 26rpx;
+  color: #666;
+  font-weight: 600;
+}
+.batch-label {
+  font-size: 26rpx;
+  color: #333;
+  margin-right: 12rpx;
+}
+.batch-picker {
+  padding: 12rpx 24rpx;
+  background: #FFF8F3;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #FF6B35;
+  border: 1rpx solid #FFD5B8;
+}
+.batch-apply-btn {
+  padding: 12rpx 32rpx;
+  font-size: 26rpx;
+  margin-left: 16rpx;
+}
+
+/* 回收站 */
+.trash-panel {
+  margin-top: 20rpx;
+  background: #FFF;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+.trash-header { display: flex; justify-content: space-between; margin-bottom: 16rpx; }
+.trash-title { font-size: 28rpx; font-weight: 600; color: #333; }
+.trash-count { font-size: 24rpx; color: #AAA; }
+.trash-item { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid #FFF0E0; }
+.trash-item:last-child { border-bottom: none; }
+.trash-item-name { font-size: 28rpx; color: #999; text-decoration: line-through; }
+.trash-restore { font-size: 24rpx; color: #27AE60; margin-right: 24rpx; }
+.trash-hard { font-size: 24rpx; color: #E74C3C; }
+.trash-empty { text-align: center; padding: 24rpx; color: #DDD; font-size: 26rpx; }
+
+/* 批量删除按钮 */
+.batch-delete-btn {
+  width: 100%;
+  text-align: center;
+  padding: 16rpx 0;
+  color: #E74C3C;
+  font-size: 26rpx;
+}

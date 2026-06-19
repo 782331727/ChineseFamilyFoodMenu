@@ -1,0 +1,9 @@
+{
+  "name": "dish-public",
+  "version": "1.0.0",
+  "description": "公开菜品查询 - 无需登录即可浏览公开菜品",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
