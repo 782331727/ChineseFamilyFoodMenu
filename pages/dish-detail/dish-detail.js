@@ -31,7 +31,8 @@ Page({
       this.setData({
         dish: mapped, loading: false,
         difficultyText: diffMap[mapped && mapped.difficulty] || '简单',
-        isForeign
+        isForeign,
+        myRating: (data && data.my_rating) || 0
       })
     }).catch(() => {
       this.setData({ loading: false })
@@ -100,6 +101,17 @@ Page({
     })
   },
 
+  // 点击图片查看高清大图
+  previewImage(e) {
+    const index = e.currentTarget.dataset.index || 0
+    const urls = this.data.dish.images || []
+    if (urls.length === 0) return
+    wx.previewImage({
+      current: urls[index],
+      urls
+    })
+  },
+
   rateDish(e) {
     if (this.data.ratingLoading) return
     const r = parseInt(e.currentTarget.dataset.r)
@@ -122,6 +134,7 @@ Page({
         if (!res.confirm) return
         callFunction('dish-add', { action: 'softDelete', dish_id: this.data.dish._id }).then(() => {
           wx.showToast({ title: '已移入回收站', icon: 'success' })
+          getApp().globalData.dishesNeedRefresh = true
           setTimeout(() => wx.switchTab({ url: '/pages/dishes/dishes' }), 1500)
         }).catch(() => {})
       }

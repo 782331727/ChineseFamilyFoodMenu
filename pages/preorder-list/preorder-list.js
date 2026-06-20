@@ -8,6 +8,7 @@ Page({
   data: {
     selectedDate: '',
     displayDate: '',
+    hasFamily: false,
     memberList: [],
     stats: {
       total: 0,
@@ -18,11 +19,13 @@ Page({
 
   onLoad() {
     const tomorrow = getTomorrowStr()
+    const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
     this.setData({
       selectedDate: tomorrow,
-      displayDate: formatDateWithWeek(tomorrow)
+      displayDate: formatDateWithWeek(tomorrow),
+      hasFamily: hf
     })
-    this.loadData()
+    if (hf) this.loadData()
   },
 
   // preorder-list 云函数返回 { preordered, not_preordered }

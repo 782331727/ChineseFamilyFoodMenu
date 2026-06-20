@@ -78,6 +78,17 @@ exports.main = async (event, context) => {
       role: m.role
     }))
 
+    // 生成头像临时链接
+    const allAvatars = [...hasPreordered, ...notPreordered].map(m => m.avatar).filter(a => a && a.startsWith('cloud://'))
+    if (allAvatars.length > 0) {
+      const tmpRes = await cloud.getTempFileURL({ fileList: allAvatars })
+      const urlMap = {}
+      tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+      ;[...hasPreordered, ...notPreordered].forEach(m => {
+        if (m.avatar && urlMap[m.avatar]) m.avatar = urlMap[m.avatar]
+      })
+    }
+
     return {
       code: 0,
       message: 'ok',

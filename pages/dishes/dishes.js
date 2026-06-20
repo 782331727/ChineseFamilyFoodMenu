@@ -1,7 +1,7 @@
 // pages/dishes/dishes.js
 const { callFunction } = require('../../utils/api')
 const { mapDish } = require('../../utils/mapper')
-const { hasPermission } = require('../../utils/auth')
+const { hasPermission, refreshRole } = require('../../utils/auth')
 
 Page({
   data: {
@@ -9,7 +9,7 @@ Page({
     currentCategory: 'all',
     categories: [
       { value: 'all', label: '全部' },
-      { value: 'trending', label: '🔥常点' },
+      { value: 'trending', label: '🔥常点', needFamily: true },
       { value: 'public', label: '🌍公开' },
       { value: '家常', label: '家常' },
       { value: '硬菜', label: '硬菜' },
@@ -20,12 +20,15 @@ Page({
       { value: '水果', label: '水果' },
       { value: '主食', label: '主食' }
     ],
+    visibleCategories: [],
     dishList: [],
     canManageDishes: false,
     // 批量管理
     batchMode: false,
     selectedIds: {},
+    selectedCount: 0,
     batchCategory: '家常',
+    batchCategoryIndex: 0,
     batchPublic: true,
     batchCategoryOptions: ['家常', '硬菜', '快手', '早餐', '汤', '甜品', '水果', '主食', '其他'],
     showTrash: false,
@@ -37,17 +40,37 @@ Page({
   },
 
   onLoad() {
+    this.updateCategories()
     this.setData({ canManageDishes: hasPermission('manage_dishes') })
     this.loadDishes()
   },
 
   onShow() {
-    // 从添加页面返回时刷新
-    if (this._needRefresh) {
+    this.updateCategories()
+    refreshRole().then(() => {
+      this.setData({ canManageDishes: hasPermission('manage_dishes') })
+    })
+    // 短期缓存 + 主动刷新标记
+    const needRefresh = this._needRefresh || getApp().globalData.dishesNeedRefresh
+    const now = Date.now()
+    const cacheOk = this._lastFetch && (now - this._lastFetch < 12000)
+    if ((needRefresh || !cacheOk) && !this.data.loading) {
       this.setData({ page: 1, noMore: false, dishList: [] })
       this.loadDishes()
       this._needRefresh = false
+      getApp().globalData.dishesNeedRefresh = false
+      this._lastFetch = now
     }
+  },
+
+  // 根据家庭状态过滤分类：游客隐藏「🔥常点」
+  updateCategories() {
+    const hasFamily = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
+    const visible = this.data.categories.filter(c => !c.needFamily || hasFamily)
+    // 如果当前选中的分类被隐藏了，切回「全部」
+    let cur = this.data.currentCategory
+    if (!visible.find(c => c.value === cur)) cur = 'all'
+    this.setData({ visibleCategories: visible, currentCategory: cur })
   },
 
   // 搜索输入（防抖300ms）
@@ -219,27 +242,29 @@ Page({
 
   // === 批量分类管理 ===
   enterBatchMode() {
-    this.setData({ batchMode: true, selectedIds: {} })
+    this.setData({ batchMode: true, selectedIds: {}, selectedCount: 0 })
   },
   exitBatchMode() {
-    this.setData({ batchMode: false, selectedIds: {} })
+    this.setData({ batchMode: false, selectedIds: {}, selectedCount: 0 })
   },
   toggleBatchSelect(e) {
     const id = e.currentTarget.dataset.id
     const sel = { ...this.data.selectedIds }
     sel[id] ? delete sel[id] : (sel[id] = true)
-    this.setData({ selectedIds: sel })
+    const count = Object.keys(sel).length
+    this.setData({ selectedIds: sel, selectedCount: count })
   },
   batchSelectAll() {
     const all = {}
     this.data.dishList.forEach(d => { all[d._id] = true })
-    this.setData({ selectedIds: all })
+    this.setData({ selectedIds: all, selectedCount: this.data.dishList.length })
   },
   batchDeselectAll() {
-    this.setData({ selectedIds: {} })
+    this.setData({ selectedIds: {}, selectedCount: 0 })
   },
   onBatchCategoryChange(e) {
-    this.setData({ batchCategory: this.data.batchCategoryOptions[e.detail.value] })
+    const index = parseInt(e.detail.value)
+    this.setData({ batchCategory: this.data.batchCategoryOptions[index], batchCategoryIndex: index })
   },
   applyBatchCategory() {
     const ids = Object.keys(this.data.selectedIds)
@@ -279,7 +304,7 @@ Page({
       success: res => {
         if (!res.confirm) return
         wx.showLoading({ title: '更新中...' })
-        callFunction('dish-add', { action: 'batchCategory', dish_ids: ids, cuisine: this.data.batchCategory }).then(data => {
+        callFunction('dish-add', { action: 'batchPublic', dish_ids: ids, is_public: pub }).then(data => {
           wx.hideLoading()
           wx.showToast({ title: `已更新 ${data.updated || ids.length} 道`, icon: 'success' })
           this.exitBatchMode()

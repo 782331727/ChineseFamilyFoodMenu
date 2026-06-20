@@ -1,7 +1,7 @@
 // pages/shopping/shopping.js
 const { callFunction } = require('../../utils/api')
 const { formatDate } = require('../../utils/date')
-const { hasPermission } = require('../../utils/auth')
+const { hasPermission, refreshRole } = require('../../utils/auth')
 
 // 常见分类对应的 emoji
 const CATEGORY_ICONS = {
@@ -24,6 +24,7 @@ Page({
     // AI 生成
     showInventory: false,
     inventoryText: '',
+    inventoryItems: [],
     aiGenerating: false,
     canManage: false,
     // 批量操作
@@ -43,6 +44,13 @@ Page({
   },
 
   onShow() {
+    refreshRole().then(() => {
+      this.setData({ canManage: hasPermission('manage_shopping') })
+    })
+    // 短期缓存：8秒内跳过
+    const now = Date.now()
+    if (this._lastFetch && now - this._lastFetch < 5000) return
+    this._lastFetch = now
     this.loadShoppingList()
   },
 
@@ -332,8 +340,13 @@ Page({
 
   // === AI 生成采购清单 ===
   generateByAI() { this.setData({ showInventory: !this.data.showInventory }) },
-  onInventoryInput(e) { this.setData({ inventoryText: e.detail.value }) },
-  cancelInventory() { this.setData({ showInventory: false, inventoryText: '' }) },
+  onInventoryInput(e) {
+    const text = e.detail.value
+    const items = (text || '').split(/[，,、\s]+/).map(s => s.trim()).filter(Boolean)
+    this.setData({ inventoryText: text, inventoryItems: items })
+  },
+  cancelInventory() { this.setData({ showInventory: false, inventoryText: '', inventoryItems: [] }) },
+  toggleInventory() { this.setData({ showInventory: !this.data.showInventory }) },
   confirmGenerateAI() {
     if (!this.data.canManage) { wx.showToast({ title: '仅家长/大厨可管理清单', icon: 'none' }); return }
     if (this.data.aiGenerating) return
@@ -354,7 +367,7 @@ Page({
         estimated_cost: (data && data.total_estimated_cost) || ''
       }).then(() => {
         wx.showToast({ title: 'AI 清单已生成', icon: 'success' })
-        this.setData({ aiGenerating: false, showInventory: false, inventoryText: '' })
+        this.setData({ aiGenerating: false, showInventory: false, inventoryText: '', inventoryItems: [] })
         this.loadShoppingList()
       }).catch(() => { this.setData({ aiGenerating: false }) })
     }).catch(() => { this.setData({ aiGenerating: false }) })

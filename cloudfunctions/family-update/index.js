@@ -20,12 +20,13 @@ exports.main = async (event, context) => {
       return { code: -1, message: '您未加入任何家庭', data: null }
     }
 
-    // 权限检查：仅 admin 可调用
-    if (caller.role !== 'admin') {
+    const familyId = caller.family_id
+
+    // 需要 admin 权限的操作
+    const adminActions = ['update_family', 'update_member_role', 'remove_member']
+    if (adminActions.includes(action) && caller.role !== 'admin') {
       return { code: -1, message: '权限不足，仅家长可操作', data: null }
     }
-
-    const familyId = caller.family_id
 
     switch (action) {
       case 'update_family': {
@@ -59,6 +60,15 @@ exports.main = async (event, context) => {
         if (!memberRes.data || memberRes.data.family_id !== familyId) {
           return { code: -1, message: '该成员不属于您的家庭', data: null }
         }
+        // 防止最后一个家长被降级（包括自己改自己）
+        if (memberRes.data.role === 'admin' && member_role !== 'admin') {
+          const adminCountRes = await db.collection('users')
+            .where({ family_id: familyId, role: 'admin' })
+            .count()
+          if (adminCountRes.total <= 1) {
+            return { code: -1, message: '至少保留一位家长，无法降级', data: null }
+          }
+        }
         await db.collection('users').doc(member_id).update({
           data: { role: member_role }
         })
@@ -86,6 +96,19 @@ exports.main = async (event, context) => {
       case 'get_members': {
         // 获取家庭成员列表
         const membersRes = await db.collection('users').where({ family_id: familyId }).get()
+        // 生成临时头像链接
+        const avatarIDs = []
+        membersRes.data.forEach(m => {
+          if (m.avatar && m.avatar.startsWith('cloud://')) avatarIDs.push(m.avatar)
+        })
+        if (avatarIDs.length > 0) {
+          const tmpRes = await cloud.getTempFileURL({ fileList: avatarIDs })
+          const urlMap = {}
+          tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+          membersRes.data.forEach(m => {
+            if (m.avatar && urlMap[m.avatar]) m.avatar = urlMap[m.avatar]
+          })
+        }
         return {
           code: 0,
           message: 'ok',

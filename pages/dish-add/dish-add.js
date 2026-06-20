@@ -31,7 +31,7 @@ Page({
     // 手动表单
     form: {
       name: '',
-      image: '',
+      images: [],
       categoryIndex: 0,
       difficulty: 'easy',
       cookTime: '',
@@ -46,7 +46,9 @@ Page({
       { value: 'medium', label: '中等' },
       { value: 'hard', label: '困难' }
     ],
-    tagInput: ''
+    tagInput: '',
+    // 编辑模式：记住原始 cloud:// fileID，避免 temp URL 被当成新图
+    editRawImages: []
   },
 
   onLoad(options) {
@@ -104,22 +106,25 @@ Page({
       // 把 AI 返回的菜品映射为前端格式
       // AI 可能返回 cuisine(菜系)、nutrition_tags(营养标签)、suitable_for(适合人群)
       // 合并去重，让筛选时可以按任意标签搜到这道菜
-      const aiResults = dishes.map(d => {
-        const aiTags = [...new Set([
-          d.cuisine,
-          ...(d.nutrition_tags || []),
-          ...(d.suitable_for || [])
-        ].filter(Boolean))]
-        return {
-          name: d.name || '未知菜品',
-          description: d.tips || '',
-          ingredientsList: (d.ingredients || []).map(i => ({ name: i.name || '', amount: i.amount || '' })),
-          steps: d.steps || [],
-          difficultyValue: d.difficulty === '较难' ? 'hard' : d.difficulty === '中等' ? 'medium' : 'easy',
-          cookTime: d.cook_time || 30,
-          tags: aiTags,
-          category: d.cuisine || '家常',
-          image: ''
+	      const aiResults = dishes.map(d => {
+	        const aiTags = [...new Set([
+	          d.cuisine,
+	          ...(d.nutrition_tags || []),
+	          ...(d.suitable_for || [])
+	        ].filter(Boolean))]
+	        const ingrList = (d.ingredients || []).map(i => i.name || '').filter(Boolean)
+	        return {
+	          name: d.name || '未知菜品',
+	          description: d.tips || '',
+	          ingredients: ingrList.join('、'),
+	          ingredientsList: (d.ingredients || []).map(i => ({ name: i.name || '', amount: i.amount || '' })),
+	          steps: d.steps || [],
+	          difficulty: d.difficulty || '简单',
+	          difficultyValue: d.difficulty === '较难' ? 'hard' : d.difficulty === '中等' ? 'medium' : 'easy',
+	          cookTime: d.cook_time || 30,
+	          tags: aiTags,
+	          category: d.cuisine || '家常',
+	          image: ''
         }
       })
       this.setData({ aiResults, aiGenerating: false })
@@ -163,10 +168,15 @@ Page({
 
       const categoryOptions = this.data.categoryOptions
       const categoryIndex = Math.max(0, categoryOptions.indexOf(mapped.category || '家常'))
+      // 原始 cloud:// fileID（用于保存），temp URL（用于预览）
+      const rawImages = (data.image_urls_raw && data.image_urls_raw.length > 0)
+        ? data.image_urls_raw
+        : (mapped.image && mapped.image.startsWith('cloud://') ? [mapped.image] : [])
       this.setData({
+        editRawImages: rawImages,
         form: {
           name: mapped.name || '',
-          image: mapped.image || '',
+          images: mapped.images || (mapped.image ? [mapped.image] : []),
           categoryIndex,
           difficulty: mapped.difficulty || 'easy',
           cookTime: String(mapped.cookTime || ''),
@@ -200,34 +210,46 @@ Page({
     this.setData({ 'form.isPublic': !this.data.form.isPublic })
   },
 
-  // 图片
+  // 图片（支持多图）
   chooseImage() {
+    const remain = 9 - this.data.form.images.length
+    if (remain <= 0) { wx.showToast({ title: '最多上传9张', icon: 'none' }); return }
     wx.chooseMedia({
-      count: 1,
+      count: remain,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],  // 微信内置压缩
+      sizeType: ['compressed'],
       success: res => {
-        const tempPath = res.tempFiles[0].tempFilePath
-        // 二次压缩：限制宽度 800px，质量 80%
-        wx.compressImage({
-          src: tempPath,
-          quality: 80,
-          compressedWidth: 800,
-          success: compressRes => {
-            this.setData({ 'form.image': compressRes.tempFilePath })
-          },
-          fail: () => {
-            // 压缩失败也用原图兜底
-            this.setData({ 'form.image': tempPath })
-          }
-        })
+        const newImages = res.tempFiles.map(f => f.tempFilePath)
+        const all = this.data.form.images.concat(newImages)
+        this.setData({ 'form.images': all })
       }
     })
   },
 
-  removeImage() {
-    this.setData({ 'form.image': '' })
+  removeImage(e) {
+    const index = e.currentTarget.dataset.index
+    const images = this.data.form.images.filter((_, i) => i !== index)
+    // 同步删除对应的原始 cloud:// fileID
+    const raw = [...this.data.editRawImages]
+    if (index < raw.length) raw.splice(index, 1)
+    this.setData({ 'form.images': images, editRawImages: raw })
+  },
+
+  // 设为封面：将指定图片移到第一位
+  setCover(e) {
+    const index = e.currentTarget.dataset.index
+    if (index <= 0) return
+    const images = [...this.data.form.images]
+    const [item] = images.splice(index, 1)
+    images.unshift(item)
+    // 同步调整原始 cloud:// fileID 顺序
+    const raw = [...this.data.editRawImages]
+    if (index < raw.length) {
+      const [rawItem] = raw.splice(index, 1)
+      raw.unshift(rawItem)
+    }
+    this.setData({ 'form.images': images, editRawImages: raw })
   },
 
   // 标签
@@ -297,10 +319,11 @@ Page({
 
     wx.showLoading({ title: '保存中...' })
 
-    const doSave = (imageFileID) => {
+    const doSave = (imageFileIDs) => {
       const cloudData = dishToCloud({
         name: form.name.trim(),
-        image: imageFileID || '',
+        images: imageFileIDs || [],
+        image: imageFileIDs && imageFileIDs[0] || '',
         category: this.data.categoryOptions[form.categoryIndex],
         difficulty: form.difficulty,
         cookTime: parseInt(form.cookTime) || 30,
@@ -317,20 +340,31 @@ Page({
       callFunction('dish-add', params).then(() => {
         wx.hideLoading()
         wx.showToast({ title: this.data.editingId ? '更新成功' : '保存成功', icon: 'success' })
+        // 通知菜品库需要刷新
+        getApp().globalData.dishesNeedRefresh = true
         setTimeout(() => wx.switchTab({ url: '/pages/dishes/dishes' }), 1500)
       }).catch(() => {
         wx.hideLoading()
       })
     }
 
-    if (form.image && (form.image.startsWith('http://tmp') || form.image.startsWith('wxfile://'))) {
-      uploadImage(form.image, 'dishes').then(fileID => {
-        doSave(fileID)
+    // 区分本地临时图片和已存储的 cloud:// fileID
+    const tempImages = form.images.filter(img =>
+      img && (img.startsWith('http://tmp') || img.startsWith('wxfile://'))
+    )
+    // 编辑模式：保留原始 cloud:// fileID
+    const existingCloudIDs = this.data.editingId ? this.data.editRawImages : []
+
+    if (tempImages.length > 0) {
+      const { uploadImages } = require('../../utils/api')
+      uploadImages(tempImages, 'dishes').then(uploadedIDs => {
+        doSave([...existingCloudIDs, ...uploadedIDs])
       }).catch(() => {
         wx.hideLoading()
+        wx.showToast({ title: '图片上传失败', icon: 'none' })
       })
     } else {
-      doSave(form.image)
+      doSave(existingCloudIDs)
     }
   }
 })

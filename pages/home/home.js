@@ -2,7 +2,7 @@
 const { callFunction } = require('../../utils/api')
 const { getTodayStr, getTomorrowStr, formatDateWithWeek, getFutureDays } = require('../../utils/date')
 const { mapDish, mealToFront } = require('../../utils/mapper')
-const { hasPermission } = require('../../utils/auth')
+const { hasPermission, refreshRole } = require('../../utils/auth')
 
 Page({
   data: {
@@ -23,11 +23,19 @@ Page({
     const app = getApp()
     const hasFamily = !!(app.globalData.familyId || wx.getStorageSync('familyId'))
     this.setData({ hasFamily, canManageDishes: hasPermission('manage_dishes') })
-    if (hasFamily) {
+    // 短期缓存：8秒内切回来跳过数据加载
+    const now = Date.now()
+    const cacheOk = this._lastFetch && (now - this._lastFetch < 8000)
+    if (hasFamily && !cacheOk) {
       if (this.data.viewMode === 'today') this.loadTodayMenu()
       else this.loadWeekMenus()
       this.loadPreorderSummary()
+      this._lastFetch = now
     }
+    // 静默刷新角色
+    refreshRole().then(() => {
+      this.setData({ canManageDishes: hasPermission('manage_dishes') })
+    })
   },
 
   initGreeting() {

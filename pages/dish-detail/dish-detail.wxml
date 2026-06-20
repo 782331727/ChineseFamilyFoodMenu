@@ -1,9 +1,23 @@
 <!-- pages/dish-detail/dish-detail.wxml -->
 <view class="container" wx:if="{{dish}}">
-  <!-- 大图 -->
-  <view class="dish-hero">
-    <image class="hero-image" src="{{dish.image || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+  <!-- 图片轮播 -->
+  <view class="dish-hero" wx:if="{{dish.images && dish.images.length > 0}}">
+    <swiper class="hero-swiper" indicator-dots="{{dish.images.length > 1}}" indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#FF6B35" autoplay="{{false}}" circular="{{true}}">
+      <swiper-item wx:for="{{dish.images}}" wx:key="*this">
+        <image class="hero-image" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}"></image>
+      </swiper-item>
+    </swiper>
     <view class="hero-overlay">
+      <view class="dish-name">{{dish.name}}</view>
+      <view class="dish-tags" wx:if="{{dish.tags && dish.tags.length}}">
+        <text class="tag" wx:for="{{dish.tags}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 无图片时的占位 -->
+  <view class="dish-hero dish-hero-empty" wx:else>
+    <view class="hero-overlay hero-overlay-plain">
       <view class="dish-name">{{dish.name}}</view>
       <view class="dish-tags" wx:if="{{dish.tags && dish.tags.length}}">
         <text class="tag" wx:for="{{dish.tags}}" wx:key="*this">{{item}}</text>

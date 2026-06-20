@@ -1,5 +1,22 @@
 <!-- pages/preorder/preorder.wxml -->
 <view class="container">
+  <!-- 未加入家庭引导 -->
+  <view class="card no-family-card" wx:if="{{!hasFamily}}">
+    <view class="no-family-row">
+      <text class="no-family-icon">🏠</text>
+      <view class="no-family-text">
+        <text class="no-family-title">加入家庭即可预定</text>
+        <text class="no-family-sub">创建或加入一个家庭，就能预定明天的菜品了</text>
+      </view>
+    </view>
+    <view class="no-family-btns">
+      <view class="btn-primary" bind:tap="goFamily" style="flex:1;text-align:center;padding:24rpx 0;border-radius:40rpx;">
+        <text>去加入家庭 →</text>
+      </view>
+    </view>
+  </view>
+
+  <block wx:else>
   <!-- 日期选择 -->
   <view class="card">
     <view class="form-label">选择日期</view>
@@ -78,4 +95,6 @@
       <text>提交预定</text>
     </view>
   </view>
+
+  </block>
 </view>

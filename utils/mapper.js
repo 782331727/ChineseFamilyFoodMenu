@@ -80,10 +80,16 @@ function mapFamily(family) {
  */
 function mapDish(dish) {
   if (!dish) return null
+  // 合并 image_urls + image_url，去重（兼容旧版单图 + 修复 temp URL bug 导致的丢图）
+  const images = []
+  if (dish.image_urls && Array.isArray(dish.image_urls)) images.push(...dish.image_urls)
+  if (dish.image_url && !images.includes(dish.image_url)) images.push(dish.image_url)
+  if (dish.image && !images.includes(dish.image)) images.push(dish.image)
   return {
     _id: dish._id,
     name: dish.name,
-    image: dish.image_url || dish.image || '',
+    image: images[0] || '',
+    images,
     category: dish.cuisine || dish.category || '家常',
     difficulty: dish.difficulty || 'easy',
     cookTime: dish.cook_time !== undefined ? dish.cook_time : (dish.cookTime || 30),
@@ -92,7 +98,9 @@ function mapDish(dish) {
     tags: dish.nutrition_tags || dish.tags || [],
     source: dish.source || 'manual',
     familyId: dish.family_id || dish.familyId,
-    isPublic: dish.is_public !== undefined ? dish.is_public : false
+    isPublic: dish.is_public !== undefined ? dish.is_public : false,
+    avg_rating: dish.avg_rating,
+    rating_count: dish.rating_count
   }
 }
 
@@ -103,6 +111,7 @@ function dishToCloud(form) {
   return {
     name: form.name,
     image_url: form.image || '',
+    image_urls: form.images || (form.image ? [form.image] : []),
     cuisine: form.category || form.cuisine || '家常',
     difficulty: form.difficulty || '简单',
     cook_time: parseInt(form.cookTime) || 30,

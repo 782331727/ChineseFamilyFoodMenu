@@ -96,16 +96,20 @@
       <input class="form-input" placeholder="输入菜品名称" value="{{form.name}}" bindinput="onInput" data-field="name"></input>
     </view>
 
-    <!-- 图片上传 -->
+    <!-- 多图上传 -->
     <view class="form-group">
-      <text class="form-label">菜品图片</text>
-      <view class="image-uploader">
-        <image class="preview-image" wx:if="{{form.image}}" src="{{form.image}}" mode="aspectFill"></image>
-        <view class="upload-btn" bind:tap="chooseImage" wx:if="{{!form.image}}">
-          <text class="upload-icon">+</text>
-          <text class="upload-text">上传图片</text>
+      <text class="form-label">菜品图片（{{form.images.length}}/9）</text>
+      <view class="images-grid">
+        <view class="image-cell" wx:for="{{form.images}}" wx:key="*this">
+          <image class="preview-image" src="{{item}}" mode="aspectFill"></image>
+          <view class="cover-badge" wx:if="{{index === 0}}"><text>封面</text></view>
+          <view class="set-cover-btn" wx:if="{{index > 0}}" data-index="{{index}}" bind:tap="setCover"><text>设为封面</text></view>
+          <view class="remove-image" data-index="{{index}}" bind:tap="removeImage">✕</view>
         </view>
-        <view class="remove-image" wx:if="{{form.image}}" bind:tap="removeImage">✕</view>
+        <view class="upload-btn" bind:tap="chooseImage" wx:if="{{form.images.length < 9}}">
+          <text class="upload-icon">+</text>
+          <text class="upload-text">添加图片</text>
+        </view>
       </view>
     </view>
 

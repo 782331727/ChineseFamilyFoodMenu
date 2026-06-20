@@ -36,6 +36,26 @@ exports.main = async (event, context) => {
       db.collection('dishes').where(where).orderBy('created_at', 'desc').skip(skip).limit(limit).get()
     ])
 
+    // 生成临时图片链接（公开菜品对所有用户可见）
+    const imageFileIDs = []
+    listRes.data.forEach(dish => {
+      if (dish.image_url && dish.image_url.startsWith('cloud://')) imageFileIDs.push(dish.image_url)
+      if (dish.image_urls && Array.isArray(dish.image_urls)) {
+        dish.image_urls.forEach(url => { if (url && url.startsWith('cloud://')) imageFileIDs.push(url) })
+      }
+    })
+    if (imageFileIDs.length > 0) {
+      const tmpRes = await cloud.getTempFileURL({ fileList: imageFileIDs })
+      const urlMap = {}
+      tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+      listRes.data.forEach(dish => {
+        if (dish.image_url && urlMap[dish.image_url]) dish.image_url = urlMap[dish.image_url]
+        if (dish.image_urls && Array.isArray(dish.image_urls)) {
+          dish.image_urls = dish.image_urls.map(url => urlMap[url] || url)
+        }
+      })
+    }
+
     return {
       code: 0, message: 'ok',
       data: {

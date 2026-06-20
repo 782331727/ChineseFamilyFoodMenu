@@ -20,7 +20,7 @@
 
   <!-- 分类筛选 -->
   <scroll-view class="category-bar" scroll-x enable-flex>
-    <view class="category-item {{currentCategory === item.value ? 'active' : ''}}" wx:for="{{categories}}" wx:key="value" data-value="{{item.value}}" bind:tap="onCategoryTap">
+    <view class="category-item {{currentCategory === item.value ? 'active' : ''}}" wx:for="{{visibleCategories}}" wx:key="value" data-value="{{item.value}}" bind:tap="onCategoryTap">
       <text>{{item.label}}</text>
     </view>
   </scroll-view>
@@ -67,11 +67,11 @@
         <text class="batch-select-link" bind:tap="batchSelectAll">全选</text>
         <text class="batch-select-link" bind:tap="batchDeselectAll">取消</text>
       </view>
-      <text class="batch-selected-count">已选 {{selectedIds | length}} 道</text>
+      <text class="batch-selected-count">已选 {{selectedCount}} 道</text>
     </view>
     <view class="batch-bar-row">
       <text class="batch-label">分类</text>
-      <picker mode="selector" range="{{batchCategoryOptions}}" value="{{batchCategoryOptions.indexOf(batchCategory)}}" bindchange="onBatchCategoryChange">
+      <picker mode="selector" range="{{batchCategoryOptions}}" value="{{batchCategoryIndex}}" bindchange="onBatchCategoryChange">
         <view class="batch-picker">{{batchCategory}} ▼</view>
       </picker>
       <view class="btn-primary batch-apply-btn" bind:tap="applyBatchCategory"><text>应用</text></view>

@@ -23,7 +23,7 @@ exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
   const {
     action, dish_id, dish_ids,
-    name, image_url, cuisine, difficulty, cook_time,
+    name, image_url, image_urls, cuisine, difficulty, cook_time,
     ingredients, steps, nutrition_tags, source, is_public
   } = event
 
@@ -151,6 +151,7 @@ exports.main = async (event, context) => {
         family_id: user.family_id,
         name: s.name,
         image_url: s.image_url || '',
+        image_urls: s.image_urls || (s.image_url ? [s.image_url] : []),
         cuisine: s.cuisine || '家常菜',
         difficulty: s.difficulty || '简单',
         cook_time: s.cook_time || 30,
@@ -185,6 +186,7 @@ exports.main = async (event, context) => {
       const updateData = {
         name,
         image_url: image_url || '',
+        image_urls: image_urls || (image_url ? [image_url] : []),
         cuisine: cuisine || '家常菜',
         difficulty: difficulty || '简单',
         cook_time: cook_time || 30,
@@ -212,6 +214,7 @@ exports.main = async (event, context) => {
       family_id: user.family_id,
       name,
       image_url: image_url || '',
+      image_urls: image_urls || (image_url ? [image_url] : []),
       cuisine: cuisine || '家常菜',
       difficulty: difficulty || '简单',
       cook_time: cook_time || 30,

@@ -1,6 +1,6 @@
 // utils/auth.js — 登录鉴权 + 角色权限检查
 
-const { getOpenid } = require('./api')
+const { callFunction, getOpenid } = require('./api')
 
 // 角色等级
 const ROLE_LEVELS = {
@@ -78,6 +78,49 @@ function requireRoleLevel(requiredRole) {
   return false
 }
 
+// 防抖：避免多个 onShow 同时调 refreshRole
+let _refreshPromise = null
+
+/**
+ * 从云端拉取最新角色，恢复完整登录态
+ * 用于 onShow 静默刷新，解决：
+ * 1. 角色被管理员修改后本地缓存不更新
+ * 2. 清除缓存后各页面登录态不一致
+ * @returns {Promise<string>} 返回最新角色
+ */
+function refreshRole() {
+  if (_refreshPromise) return _refreshPromise
+  const app = getApp()
+  _refreshPromise = callFunction('profile-manage', { action: 'get_profile' }).then(data => {
+    if (!data) return getCurrentRole()
+    const newRole = data.role || 'eater'
+    // 恢复完整登录态
+    app.globalData.role = newRole
+    app.globalData.openid = data.openid || app.globalData.openid
+    app.globalData.familyId = data.family_id || ''
+    app.globalData.isLogin = true
+    wx.setStorageSync('role', newRole)
+    wx.setStorageSync('openid', app.globalData.openid)
+    wx.setStorageSync('familyId', app.globalData.familyId)
+    // 恢复用户信息（如果本地没有）
+    if (!app.globalData.userInfo && data.nickname) {
+      const userInfo = {
+        _id: data._id,
+        nickName: data.nickname,
+        avatarUrl: data.avatar || ''
+      }
+      app.globalData.userInfo = userInfo
+      wx.setStorageSync('userInfo', userInfo)
+    }
+    return newRole
+  }).catch(() => {
+    return getCurrentRole()
+  }).finally(() => {
+    _refreshPromise = null
+  })
+  return _refreshPromise
+}
+
 /**
  * 确保已登录
  * @returns {Promise<boolean>}
@@ -115,5 +158,6 @@ module.exports = {
   requirePermission,
   requireRoleLevel,
   ensureLogin,
+  refreshRole,
   getRoleName
 }

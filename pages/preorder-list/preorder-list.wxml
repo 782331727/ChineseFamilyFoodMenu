@@ -1,5 +1,17 @@
 <!-- pages/preorder-list/preorder-list.wxml -->
 <view class="container">
+  <!-- 未加入家庭引导 -->
+  <view class="card no-family-card" wx:if="{{!hasFamily}}">
+    <view class="no-family-row">
+      <text class="no-family-icon">🏠</text>
+      <view class="no-family-text">
+        <text class="no-family-title">加入家庭即可查看预定</text>
+        <text class="no-family-sub">创建或加入一个家庭，就能看到家人的预定情况了</text>
+      </view>
+    </view>
+  </view>
+
+  <block wx:else>
   <!-- 日期选择 -->
   <view class="date-bar">
     <view class="date-arrow" bind:tap="prevDate">‹</view>
@@ -62,4 +74,6 @@
   </view>
 
   <view style="height: 60rpx;"></view>
+
+  </block>
 </view>

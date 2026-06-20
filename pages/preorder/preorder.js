@@ -2,11 +2,13 @@
 const { callFunction } = require('../../utils/api')
 const { getFutureDays } = require('../../utils/date')
 const { mapDish, mealToCloud } = require('../../utils/mapper')
+const { hasPermission, refreshRole } = require('../../utils/auth')
 
 Page({
   data: {
     dateOptions: [],
     selectedDate: '',
+    hasFamily: false,
     mealOptions: [
       { value: 'morning', emoji: '🌅', label: '早餐' },
       { value: 'noon', emoji: '☀️', label: '午餐' },
@@ -26,13 +28,21 @@ Page({
   onLoad(options) {
     const dates = getFutureDays(7)
     const selectedDate = dates[1] ? dates[1].date : dates[0].date
-    this.setData({ dateOptions: dates, selectedDate })
-    this.loadDishes()
-    this.loadOthersPreorders()
+    const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
+    this.setData({ dateOptions: dates, selectedDate, hasFamily: hf })
+    if (hf) { this.loadDishes(); this.loadOthersPreorders() }
     if (options.dishId) this.selectDish(options.dishId)
   },
 
   onShow() {
+    refreshRole()
+    const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
+    this.setData({ hasFamily: hf })
+    if (!hf) return
+    // 短期缓存：8秒内跳过
+    const now = Date.now()
+    if (this._lastFetch && now - this._lastFetch < 5000) return
+    this._lastFetch = now
     const app = getApp()
     const dishId = app.globalData.preorderDishId
     if (dishId) {
@@ -132,5 +142,7 @@ Page({
       this.setData({ selectedDishes: {}, selectedCount: 0, remark: '' })
       this.loadOthersPreorders()
     })
-  }
+  },
+
+  goFamily() { wx.navigateTo({ url: '/pages/family/family' }) }
 })

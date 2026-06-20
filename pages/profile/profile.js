@@ -1,6 +1,6 @@
 // pages/profile/profile.js
 const { callFunction, uploadImage } = require('../../utils/api')
-const { getCurrentRole, getRoleName, ensureLogin } = require('../../utils/auth')
+const { getCurrentRole, getRoleName, ensureLogin, refreshRole } = require('../../utils/auth')
 
 Page({
   data: {
@@ -18,7 +18,15 @@ Page({
   },
 
   onLoad() { this.initUserInfo() },
-  onShow() { this.loadProfile(); this.loadStats() },
+  onShow() {
+    refreshRole().then(() => this.initUserInfo())
+    // 短期缓存：8秒内跳过
+    const now = Date.now()
+    if (this._lastFetch && now - this._lastFetch < 15000) return
+    this._lastFetch = now
+    this.loadProfile()
+    this.loadStats()
+  },
 
   initUserInfo() {
     const app = getApp()
@@ -143,5 +151,5 @@ Page({
   goFamily() { wx.navigateTo({ url: '/pages/family/family' }) },
   goPreorderList() { wx.navigateTo({ url: '/pages/preorder-list/preorder-list' }) },
   goPrivacy() { wx.navigateTo({ url: '/pages/privacy/privacy' }) },
-  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.0.1\n\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) }
+  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.1.0\n\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐\n\nv1.1.0 更新：\n· 🖼️ 菜品支持多图，可设封面，滑动预览\n· 👁️ 修复图片权限，家庭成员可互看图片\n· 🔄 角色修改即时生效，无需重启\n· ⭐ 评分记录持久化，再次进入可回显\n· 🛡️ 防止最后一个家长被误降级\n· ⚡ Tab切换缓存加速，大幅提升流畅度\n· 🐛 修复 7 个隐藏 bug', showCancel: false }) }
 })

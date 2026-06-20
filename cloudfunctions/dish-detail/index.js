@@ -44,12 +44,37 @@ exports.main = async (event, context) => {
       .limit(10)
       .get()
 
+    // 从 cook_history 中提取当前用户的最近一次评分
+    const myRating = historyRes.data.find(h => h.cook_id === user._id)?.rating || 0
+
+    // 保存原始 fileID，生成临时链接用于展示
+    const imageUrlsRaw = dish.image_urls && dish.image_urls.length > 0
+      ? [...dish.image_urls]
+      : (dish.image_url ? [dish.image_url] : [])
+
+    const imgFileIDs = []
+    if (dish.image_url && dish.image_url.startsWith('cloud://')) imgFileIDs.push(dish.image_url)
+    if (dish.image_urls && Array.isArray(dish.image_urls)) {
+      dish.image_urls.forEach(url => { if (url && url.startsWith('cloud://')) imgFileIDs.push(url) })
+    }
+    if (imgFileIDs.length > 0) {
+      const tmpRes = await cloud.getTempFileURL({ fileList: imgFileIDs })
+      const urlMap = {}
+      tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+      if (dish.image_url && urlMap[dish.image_url]) dish.image_url = urlMap[dish.image_url]
+      if (dish.image_urls && Array.isArray(dish.image_urls)) {
+        dish.image_urls = dish.image_urls.map(url => urlMap[url] || url)
+      }
+    }
+
     return {
       code: 0,
       message: 'ok',
       data: {
         dish,
-        cook_history: historyRes.data
+        cook_history: historyRes.data,
+        my_rating: myRating,
+        image_urls_raw: imageUrlsRaw
       }
     }
   } catch (err) {

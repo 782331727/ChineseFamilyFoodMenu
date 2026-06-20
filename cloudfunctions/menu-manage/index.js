@@ -86,6 +86,24 @@ exports.main = async (event, context) => {
           dish_info: dishesMap[m.dish_id] || null
         }))
 
+        // 生成临时图片链接
+        const imgIDs = []
+        result.forEach(item => {
+          if (item.dish_info && item.dish_info.image_url && item.dish_info.image_url.startsWith('cloud://')) {
+            imgIDs.push(item.dish_info.image_url)
+          }
+        })
+        if (imgIDs.length > 0) {
+          const tmpRes = await cloud.getTempFileURL({ fileList: imgIDs })
+          const urlMap = {}
+          tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+          result.forEach(item => {
+            if (item.dish_info && item.dish_info.image_url && urlMap[item.dish_info.image_url]) {
+              item.dish_info.image_url = urlMap[item.dish_info.image_url]
+            }
+          })
+        }
+
         return { code: 0, message: 'ok', data: result }
       }
 

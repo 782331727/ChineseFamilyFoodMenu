@@ -26,14 +26,18 @@ exports.main = async (event, context) => {
 
     switch (action) {
       case 'get_profile': {
-        // 返回口味偏好、忌口、角色等
+        // 返回完整个人信息：角色、口味、忌口、昵称、头像、家庭
         const preferences = user.preferences || {}
         const allergies = user.allergies || []
         return {
           code: 0,
           message: 'ok',
           data: {
+            openid: user.openid,
+            nickname: user.nickname || '微信用户',
+            avatar: user.avatar || '',
             role: user.role || 'eater',
+            family_id: user.family_id || '',
             taste: {
               spicy: preferences.spicy !== undefined ? preferences.spicy : 3,
               sweet: preferences.sweet !== undefined ? preferences.sweet : 3,

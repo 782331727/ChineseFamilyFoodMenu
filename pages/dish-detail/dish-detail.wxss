@@ -12,6 +12,15 @@
   overflow: hidden;
 }
 
+.dish-hero-empty {
+  background: linear-gradient(135deg, #FF6B35, #FF8B5E);
+}
+
+.hero-swiper {
+  width: 100%;
+  height: 100%;
+}
+
 .hero-image {
   width: 100%;
   height: 100%;
@@ -24,6 +33,14 @@
   right: 0;
   padding: 40rpx 32rpx 32rpx;
   background: linear-gradient(transparent, rgba(0,0,0,0.6));
+}
+
+.hero-overlay-plain {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40rpx 32rpx 32rpx;
 }
 
 .dish-name {
