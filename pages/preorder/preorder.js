@@ -39,10 +39,12 @@ Page({
     const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
     this.setData({ hasFamily: hf })
     if (!hf) return
-    // 短期缓存：8秒内跳过
+    // 短期缓存：5秒内跳过刷新
     const now = Date.now()
     if (this._lastFetch && now - this._lastFetch < 5000) return
     this._lastFetch = now
+    // 刷新菜品列表（确保删除、新增的菜品能及时反映）
+    this.loadDishes()
     const app = getApp()
     const dishId = app.globalData.preorderDishId
     if (dishId) {

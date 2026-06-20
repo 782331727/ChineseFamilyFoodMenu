@@ -53,17 +53,19 @@ exports.main = async (event, context) => {
     const top5 = scored.slice(0, 5)
 
     const dishesRes = await db.collection('dishes')
-      .where({ _id: _.in(top5.map(s => s.dish_id)) })
+      .where({ _id: _.in(top5.map(s => s.dish_id)), is_deleted: _.neq(true) })
       .get()
     const dishMap = {}
     dishesRes.data.forEach(d => { dishMap[d._id] = d })
 
-    const list = top5.map(s => ({
-      ...(dishMap[s.dish_id] || { name: '未知菜品' }),
-      count90: s.count90,
-      count7: s.count7,
-      trend: s.count7 >= s.count90 * 0.5 ? '🔥上升' : s.count7 > 0 ? '📈稳定' : '📊经典'
-    }))
+    const list = top5
+      .filter(s => dishMap[s.dish_id])  // 排除已删除/不存在的菜品
+      .map(s => ({
+        ...dishMap[s.dish_id],
+        count90: s.count90,
+        count7: s.count7,
+        trend: s.count7 >= s.count90 * 0.5 ? '🔥上升' : s.count7 > 0 ? '📈稳定' : '📊经典'
+      }))
 
     // 生成临时图片链接
     const imgIDs = list.map(d => d.image_url).filter(u => u && u.startsWith('cloud://'))

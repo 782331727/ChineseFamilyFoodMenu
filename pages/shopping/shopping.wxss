@@ -52,8 +52,36 @@
 .batch-btn.danger {
   color: #E74C3C;
 }
+.batch-btn.batch-edit-btn {
+  background: rgba(255,107,53,0.08);
+  color: #FF6B35;
+  font-weight: 500;
+}
+.batch-btn.batch-delete-btn {
+  color: #E74C3C;
+  background: rgba(231,76,60,0.08);
+  font-weight: 500;
+}
 .batch-btn-icon {
   font-size: 28rpx;
+}
+
+/* 批量编辑模式下的选中项 */
+.shopping-item.batch-selected {
+  background: rgba(255,107,53,0.06);
+  border-radius: 12rpx;
+  margin: 0 -8rpx;
+  padding-left: 8rpx;
+  padding-right: 8rpx;
+}
+.check-circle.batch-check {
+  border-color: #CCC;
+  border-style: dashed;
+}
+.check-circle.batch-check.checked {
+  background: #FF6B35;
+  border-color: #FF6B35;
+  border-style: solid;
 }
 
 /* 品类 */

@@ -29,6 +29,10 @@ Page({
     canManage: false,
     // 批量操作
     allChecked: false,
+    // 批量编辑模式（类似菜品库的批量管理）
+    batchMode: false,
+    selectedKeys: {},
+    selectedCount: 0,
     // 手动添加
     showAddPanel: false,
     addName: '',
@@ -47,10 +51,8 @@ Page({
     refreshRole().then(() => {
       this.setData({ canManage: hasPermission('manage_shopping') })
     })
-    // 短期缓存：8秒内跳过
-    const now = Date.now()
-    if (this._lastFetch && now - this._lastFetch < 5000) return
-    this._lastFetch = now
+    // 如果正在同步中，跳过本次加载，等 syncToCloud 完成后再刷新
+    if (this._syncing) return
     this.loadShoppingList()
   },
 
@@ -123,6 +125,8 @@ Page({
   // 返回按 _listId 分组的 items 数组
   rebuildRawItems() {
     const byList = {}
+    // 先为所有已知清单创建空条目（即使该清单已无食材，也要写入空数组清空云端）
+    ;(this.data.rawListIds || []).forEach(id => { byList[id] = [] })
     this.data.shoppingList.forEach(cat => {
       cat.items.forEach(item => {
         if (!item._listId) return
@@ -141,6 +145,7 @@ Page({
 
   // 同步全部 items 到云端（批量写回）
   syncToCloud(callback) {
+    this._syncing = true
     const byList = this.rebuildRawItems()
     const tasks = Object.keys(byList).map(listId => {
       return callFunction('shopping-list', {
@@ -150,6 +155,7 @@ Page({
       })
     })
     Promise.all(tasks.map(p => p.catch(() => {}))).then(() => {
+      this._syncing = false
       if (callback) callback()
     })
   },
@@ -205,7 +211,7 @@ Page({
           totalItems: newTotalItems,
           hasData: newTotalItems > 0
         })
-        this.syncToCloud()
+        this.syncToCloud(() => this.loadShoppingList())
       }
     })
   },
@@ -226,7 +232,7 @@ Page({
       })
       this.setData({ shoppingList: this.data.shoppingList, totalChecked: this.data.totalItems, allChecked: true })
     }
-    this.syncToCloud()
+    this.syncToCloud(() => this.loadShoppingList())
   },
 
   uncheckAll() {
@@ -242,7 +248,76 @@ Page({
       totalChecked: 0,
       allChecked: false
     })
-    this.syncToCloud()
+    this.syncToCloud(() => this.loadShoppingList())
+  },
+
+  // === 批量编辑模式（批量选中 + 批量删除）===
+  enterBatchMode() {
+    if (!this.data.canManage) { wx.showToast({ title: '仅家长/大厨可管理清单', icon: 'none' }); return }
+    this.setData({ batchMode: true, selectedKeys: {}, selectedCount: 0 })
+  },
+  exitBatchMode() {
+    this.setData({ batchMode: false, selectedKeys: {}, selectedCount: 0 })
+  },
+  toggleBatchSelect(e) {
+    const key = e.currentTarget.dataset.key
+    const sel = { ...this.data.selectedKeys }
+    sel[key] ? delete sel[key] : (sel[key] = true)
+    this.setData({ selectedKeys: sel, selectedCount: Object.keys(sel).length })
+  },
+  batchSelectAll() {
+    const all = {}
+    this.data.shoppingList.forEach(cat => {
+      cat.items.forEach(it => { all[it._key] = true })
+    })
+    const count = Object.keys(all).length
+    this.setData({ selectedKeys: all, selectedCount: count })
+  },
+  batchDeselectAll() {
+    this.setData({ selectedKeys: {}, selectedCount: 0 })
+  },
+  applyBatchDelete() {
+    const keysToDelete = this.data.selectedKeys
+    const count = Object.keys(keysToDelete).length
+    if (count === 0) { wx.showToast({ title: '请先选择食材', icon: 'none' }); return }
+    wx.showModal({
+      title: '批量删除',
+      content: `确定删除 ${count} 项食材吗？`,
+      confirmColor: '#E74C3C',
+      success: res => {
+        if (!res.confirm) return
+        // 从每个分类中移除选中的食材
+        const updatedList = this.data.shoppingList.map(cat => {
+          const newItems = cat.items.filter(it => !keysToDelete[it._key])
+          const checkedCount = newItems.filter(it => it.checked).length
+          if (newItems.length === cat.items.length) return cat  // 没有变化
+          if (newItems.length === 0) return null  // 整个分类空了，标记删除
+          return { ...cat, items: newItems, checkedCount }
+        }).filter(Boolean)  // 移除空的分类
+
+        // 重新分配 _key
+        let counter = 0
+        updatedList.forEach(c => c.items.forEach(it => { it._key = 'i_' + (++counter) }))
+
+        const newTotalChecked = updatedList.reduce((sum, c) => sum + c.items.filter(it => it.checked).length, 0)
+        const newTotalItems = updatedList.reduce((sum, c) => sum + c.items.length, 0)
+
+        this.setData({
+          shoppingList: updatedList,
+          totalChecked: newTotalChecked,
+          totalItems: newTotalItems,
+          hasData: newTotalItems > 0,
+          allChecked: newTotalItems > 0 && newTotalChecked === newTotalItems,
+          batchMode: false,
+          selectedKeys: {},
+          selectedCount: 0
+        })
+        this.syncToCloud(() => {
+          // 同步完成后从云端重新加载，确保一致性
+          this.loadShoppingList()
+        })
+      }
+    })
   },
 
   // === 手动添加食材 ===
@@ -301,7 +376,7 @@ Page({
       totalItems: this.data.totalItems + 1, hasData: true,
       showAddPanel: false, addName: '', addAmount: ''
     })
-    this.syncToCloud()
+    this.syncToCloud(() => this.loadShoppingList())
   },
 
   refreshList() {

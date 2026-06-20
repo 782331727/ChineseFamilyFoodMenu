@@ -76,18 +76,44 @@
 
   <!-- 批量操作工具栏 -->
   <view class="batch-toolbar" wx:if="{{hasData}}">
-    <view class="batch-btn" bind:tap="selectAll">
-      <text class="batch-btn-icon">{{allChecked ? '☐' : '☑'}}</text>
-      <text>{{allChecked ? '取消全选' : '全选'}}</text>
-    </view>
-    <view class="batch-btn" bind:tap="uncheckAll" wx:if="{{totalChecked > 0}}">
-      <text class="batch-btn-icon">↩</text>
-      <text>取消勾选 ({{totalChecked}})</text>
-    </view>
-    <view class="batch-btn" bind:tap="shareList" wx:if="{{hasData}}">
-      <text class="batch-btn-icon">📋</text>
-      <text>复制清单</text>
-    </view>
+    <!-- 非批量模式：勾选操作 + 批量编辑入口 -->
+    <block wx:if="{{!batchMode}}">
+      <view class="batch-btn" bind:tap="selectAll" wx:if="{{canManage}}">
+        <text class="batch-btn-icon">{{allChecked ? '☐' : '☑'}}</text>
+        <text>{{allChecked ? '取消全选' : '全选'}}</text>
+      </view>
+      <view class="batch-btn" bind:tap="uncheckAll" wx:if="{{totalChecked > 0 && canManage}}">
+        <text class="batch-btn-icon">↩</text>
+        <text>取消勾选 ({{totalChecked}})</text>
+      </view>
+      <view class="batch-btn" bind:tap="shareList" wx:if="{{hasData}}">
+        <text class="batch-btn-icon">📋</text>
+        <text>复制清单</text>
+      </view>
+      <view class="batch-btn batch-edit-btn" bind:tap="enterBatchMode">
+        <text class="batch-btn-icon">✏️</text>
+        <text>批量编辑</text>
+      </view>
+    </block>
+    <!-- 批量编辑模式：选中操作 -->
+    <block wx:else>
+      <view class="batch-btn" bind:tap="batchSelectAll">
+        <text class="batch-btn-icon">☑</text>
+        <text>全选</text>
+      </view>
+      <view class="batch-btn" bind:tap="batchDeselectAll" wx:if="{{selectedCount > 0}}">
+        <text class="batch-btn-icon">↩</text>
+        <text>取消选中</text>
+      </view>
+      <view class="batch-btn batch-delete-btn" bind:tap="applyBatchDelete" wx:if="{{selectedCount > 0}}">
+        <text class="batch-btn-icon">🗑</text>
+        <text>删除 ({{selectedCount}})</text>
+      </view>
+      <view class="batch-btn" bind:tap="exitBatchMode">
+        <text class="batch-btn-icon">✕</text>
+        <text>完成</text>
+      </view>
+    </block>
   </view>
 
   <!-- 采购清单 -->
@@ -102,19 +128,35 @@
         </view>
       </view>
       <view class="item-list card">
-        <view class="shopping-item {{item2.checked ? 'checked' : ''}}" wx:for="{{item.items}}" wx:key="_key" wx:for-item="item2" wx:for-index="idx2">
-          <view class="check-circle {{item2.checked ? 'checked' : ''}}" catch:tap="toggleItem" data-cat="{{item.category}}" data-index="{{idx2}}">
-            <text wx:if="{{item2.checked}}">✓</text>
+        <!-- 批量编辑模式：点选 -->
+        <block wx:if="{{batchMode}}">
+          <view class="shopping-item {{selectedKeys[item2._key] ? 'batch-selected' : ''}}" wx:for="{{item.items}}" wx:key="_key" wx:for-item="item2" wx:for-index="idx2" catch:tap="toggleBatchSelect" data-key="{{item2._key}}">
+            <view class="check-circle batch-check {{selectedKeys[item2._key] ? 'checked' : ''}}">
+              <text wx:if="{{selectedKeys[item2._key]}}">✓</text>
+            </view>
+            <view class="item-info">
+              <text class="item-name">{{item2.name}}</text>
+              <text class="item-amount">{{item2.amount}}</text>
+            </view>
+            <text class="item-price" wx:if="{{item2.estimatedPrice}}">¥{{item2.estimatedPrice}}</text>
           </view>
-          <view class="item-info" bind:tap="toggleItem" data-cat="{{item.category}}" data-index="{{idx2}}">
-            <text class="item-name">{{item2.name}}</text>
-            <text class="item-amount">{{item2.amount}}</text>
+        </block>
+        <!-- 普通模式：勾选 -->
+        <block wx:else>
+          <view class="shopping-item {{item2.checked ? 'checked' : ''}}" wx:for="{{item.items}}" wx:key="_key" wx:for-item="item2" wx:for-index="idx2">
+            <view class="check-circle {{item2.checked ? 'checked' : ''}}" catch:tap="toggleItem" data-cat="{{item.category}}" data-index="{{idx2}}">
+              <text wx:if="{{item2.checked}}">✓</text>
+            </view>
+            <view class="item-info" bind:tap="toggleItem" data-cat="{{item.category}}" data-index="{{idx2}}">
+              <text class="item-name">{{item2.name}}</text>
+              <text class="item-amount">{{item2.amount}}</text>
+            </view>
+            <text class="item-price" wx:if="{{item2.estimatedPrice}}">¥{{item2.estimatedPrice}}</text>
+            <view class="delete-item-btn" catch:tap="deleteItem" data-cat="{{item.category}}" data-index="{{idx2}}" wx:if="{{canManage}}">
+              <text>✕</text>
+            </view>
           </view>
-          <text class="item-price" wx:if="{{item2.estimatedPrice}}">¥{{item2.estimatedPrice}}</text>
-          <view class="delete-item-btn" catch:tap="deleteItem" data-cat="{{item.category}}" data-index="{{idx2}}" wx:if="{{canManage}}">
-            <text>✕</text>
-          </view>
-        </view>
+        </block>
       </view>
     </view>
 

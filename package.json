@@ -1,0 +1,13 @@
+{
+  "name": "zhangjie-menu",
+  "version": "1.1.1",
+  "description": "张姐的私房菜谱 - 家庭美食菜单管理小程序",
+  "private": true,
+  "scripts": {
+    "test:smoke": "node tests/smoke-test.js",
+    "test:roles": "node tests/role-test.js"
+  },
+  "devDependencies": {
+    "miniprogram-automator": "^1.0.26"
+  }
+}

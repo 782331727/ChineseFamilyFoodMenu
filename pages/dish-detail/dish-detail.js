@@ -17,7 +17,8 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ canManage: hasPermission('manage_dishes') })
+    const hasFamily = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
+    this.setData({ canManage: hasPermission('manage_dishes'), hasFamily })
     if (options.id) { this.loadDish(options.id) }
   },
 
@@ -116,6 +117,7 @@ Page({
     if (this.data.ratingLoading) return
     const r = parseInt(e.currentTarget.dataset.r)
     if (!r || r < 1 || r > 5) return
+    if (!this.data.hasFamily) { wx.showToast({ title: '请先加入家庭', icon: 'none' }); return }
     this.setData({ myRating: r, ratingLoading: true })
     callFunction('dish-add', { action: 'rate', dish_id: this.data.dish._id, rating: r }).then(data => {
       const d = this.data.dish
@@ -144,6 +146,7 @@ Page({
   // 引入到我家（跨家庭复制公开菜）
   cloneDish() {
     if (this.data.cloning) return
+    if (!this.data.hasFamily) { wx.showToast({ title: '请先加入家庭', icon: 'none' }); return }
     this.setData({ cloning: true })
     callFunction('dish-add', { action: 'clone', dish_id: this.data.dish._id }).then(data => {
       wx.showToast({ title: '已引入到我家', icon: 'success' })

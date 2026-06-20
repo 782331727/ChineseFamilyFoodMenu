@@ -102,7 +102,7 @@
 
   <!-- 底部操作栏 -->
   <view class="bottom-bar" wx:if="{{dish}}">
-    <view class="bottom-btn primary" bind:tap="cloneDish" wx:if="{{isForeign}}">
+    <view class="bottom-btn primary" bind:tap="cloneDish" wx:if="{{isForeign && hasFamily}}">
       <text>{{cloning ? '引入中...' : '🍴 引入到我家'}}</text>
     </view>
     <block wx:else>
