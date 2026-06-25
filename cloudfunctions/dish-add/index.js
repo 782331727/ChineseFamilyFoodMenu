@@ -62,10 +62,6 @@ exports.main = async (event, context) => {
       await db.collection('dishes').doc(dish_id).update({
         data: { avg_rating: newAvg, rating_count: newCount, updated_at: new Date() }
       })
-      // 同时写 cook_history
-      await db.collection('cook_history').add({
-        data: { family_id: user.family_id, dish_id, cook_id: user._id, cooked_at: new Date(), rating: Number(rating), image_url: '', note: '' }
-      })
       return { code: 0, message: `评分成功 (${newAvg}分)`, data: { avg_rating: newAvg, rating_count: newCount } }
     }
 

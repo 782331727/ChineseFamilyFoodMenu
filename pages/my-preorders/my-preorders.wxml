@@ -1,0 +1,54 @@
+<view class="container">
+  <!-- 空状态 -->
+  <empty-state wx:if="{{preorders.length === 0 && !loading}}" text="暂无预购记录" subText="去菜品页面预购你想吃的菜吧"></empty-state>
+
+  <!-- 首次加载中 -->
+  <view class="loading-bar" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 预购列表 -->
+  <block wx:if="{{!loading && preorders.length > 0}}">
+    <view class="preorder-list">
+      <view class="preorder-group" wx:for="{{groupedList}}" wx:key="date" wx:for-item="group">
+        <view class="date-header">
+          <text class="date-label">{{group.displayDate}}</text>
+          <text class="date-count">{{group.list.length}} 道菜</text>
+        </view>
+
+        <view class="card preorder-item" wx:for="{{group.list}}" wx:key="_id" wx:for-item="item">
+          <view class="item-left">
+            <image class="item-image" src="{{item.dish_image || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+            <view class="item-info">
+              <text class="item-name">{{item.dish_name}}</text>
+              <text class="item-note" wx:if="{{item.note}}">备注：{{item.note}}</text>
+              <text class="item-date">{{item.target_date}}</text>
+            </view>
+          </view>
+          <view class="item-actions">
+            <view class="action-btn edit-btn" bind:tap="onEditPreorder" data-id="{{item._id}}" data-dish-id="{{item.dish_id}}" data-date="{{item.target_date}}" data-note="{{item.note}}" data-meal="{{item.meal_type}}">
+              <text>编辑</text>
+            </view>
+            <view class="action-btn cancel-btn" bind:tap="onCancelPreorder" data-id="{{item._id}}" data-name="{{item.dish_name}}">
+              <text>取消</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more-wrap" wx:if="{{hasMore}}">
+      <view class="load-more-btn {{loadingMore ? 'disabled' : ''}}" bind:tap="loadMore">
+        <text>{{loadingMore ? '加载中...' : '加载更早的预购 ▼'}}</text>
+      </view>
+    </view>
+
+    <!-- 已加载全部 -->
+    <view class="load-all-text" wx:else>
+      <text>已显示全部 {{totalAll}} 条预购记录</text>
+    </view>
+  </block>
+
+  <view style="height: 60rpx;"></view>
+</view>

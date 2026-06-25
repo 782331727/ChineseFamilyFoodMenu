@@ -102,12 +102,23 @@ exports.main = async (event, context) => {
           if (m.avatar && m.avatar.startsWith('cloud://')) avatarIDs.push(m.avatar)
         })
         if (avatarIDs.length > 0) {
-          const tmpRes = await cloud.getTempFileURL({ fileList: avatarIDs })
-          const urlMap = {}
-          tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
-          membersRes.data.forEach(m => {
-            if (m.avatar && urlMap[m.avatar]) m.avatar = urlMap[m.avatar]
-          })
+          try {
+            const tmpRes = await cloud.getTempFileURL({ fileList: [...new Set(avatarIDs)] })
+            const urlMap = {}
+            tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+            membersRes.data.forEach(m => {
+              if (m.avatar && m.avatar.startsWith('cloud://')) {
+                // 转换成功则用临时 URL，否则置空让前端用默认头像
+                m.avatar = urlMap[m.avatar] || ''
+              }
+            })
+          } catch (e) {
+            console.warn('[family-update] getTempFileURL failed, clearing avatars:', e.message)
+            // 转换失败：把 cloud:// 头像全部置空，前端 fallback 到默认头像
+            membersRes.data.forEach(m => {
+              if (m.avatar && m.avatar.startsWith('cloud://')) m.avatar = ''
+            })
+          }
         }
         return {
           code: 0,

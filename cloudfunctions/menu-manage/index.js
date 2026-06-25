@@ -76,7 +76,7 @@ exports.main = async (event, context) => {
         let dishesMap = {}
         if (dishIds.length > 0) {
           const dishesRes = await db.collection('dishes')
-            .where({ _id: _.in(dishIds) })
+            .where({ _id: _.in(dishIds), is_deleted: _.neq(true) })
             .get()
           dishesRes.data.forEach(d => { dishesMap[d._id] = d })
         }
@@ -86,22 +86,34 @@ exports.main = async (event, context) => {
           dish_info: dishesMap[m.dish_id] || null
         }))
 
-        // 生成临时图片链接
+        // 生成临时图片链接（解决跨用户无法查看图片问题）
         const imgIDs = []
         result.forEach(item => {
-          if (item.dish_info && item.dish_info.image_url && item.dish_info.image_url.startsWith('cloud://')) {
-            imgIDs.push(item.dish_info.image_url)
+          const d = item.dish_info
+          if (!d) return
+          if (d.image_url && d.image_url.startsWith('cloud://')) imgIDs.push(d.image_url)
+          if (d.image && d.image.startsWith('cloud://')) imgIDs.push(d.image)
+          if (d.image_urls && Array.isArray(d.image_urls)) {
+            d.image_urls.forEach(url => { if (url && url.startsWith('cloud://')) imgIDs.push(url) })
           }
         })
         if (imgIDs.length > 0) {
-          const tmpRes = await cloud.getTempFileURL({ fileList: imgIDs })
-          const urlMap = {}
-          tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
-          result.forEach(item => {
-            if (item.dish_info && item.dish_info.image_url && urlMap[item.dish_info.image_url]) {
-              item.dish_info.image_url = urlMap[item.dish_info.image_url]
-            }
-          })
+          try {
+            const tmpRes = await cloud.getTempFileURL({ fileList: [...new Set(imgIDs)] })
+            const urlMap = {}
+            tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+            result.forEach(item => {
+              const d = item.dish_info
+              if (!d) return
+              if (d.image_url && urlMap[d.image_url]) d.image_url = urlMap[d.image_url]
+              if (d.image && urlMap[d.image]) d.image = urlMap[d.image]
+              if (d.image_urls && Array.isArray(d.image_urls)) {
+                d.image_urls = d.image_urls.map(url => urlMap[url] || url)
+              }
+            })
+          } catch (e) {
+            console.warn('[menu-manage] getTempFileURL failed, continuing without temp URLs:', e.message)
+          }
         }
 
         return { code: 0, message: 'ok', data: result }

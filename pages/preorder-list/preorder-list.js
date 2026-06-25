@@ -1,7 +1,7 @@
 // pages/preorder-list/preorder-list.js
 const { callFunction } = require('../../utils/api')
 const { formatDate, formatDateWithWeek, getTomorrowStr } = require('../../utils/date')
-const { getRoleName } = require('../../utils/auth')
+const { getCurrentRole, getRoleName } = require('../../utils/auth')
 const { mapDish } = require('../../utils/mapper')
 
 Page({
@@ -9,6 +9,7 @@ Page({
     selectedDate: '',
     displayDate: '',
     hasFamily: false,
+    isAdmin: false,
     memberList: [],
     stats: {
       total: 0,
@@ -20,10 +21,12 @@ Page({
   onLoad() {
     const tomorrow = getTomorrowStr()
     const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
+    const isAdmin = getCurrentRole() === 'admin'
     this.setData({
       selectedDate: tomorrow,
       displayDate: formatDateWithWeek(tomorrow),
-      hasFamily: hf
+      hasFamily: hf,
+      isAdmin
     })
     if (hf) this.loadData()
   },
@@ -40,7 +43,11 @@ Page({
       const memberList = []
 
       preordered.forEach(m => {
-        const dishes = (m.preorders || []).map(p => mapDish(p.dish_info) || { name: '未知菜品' })
+        const dishes = (m.preorders || []).map(p => ({
+          ...mapDish(p.dish_info),
+          preorderId: p._id,
+          note: p.note || ''
+        }))
         memberList.push({
           openid: m.user_id,
           nickName: m.nickname,
@@ -101,7 +108,38 @@ Page({
     this.loadData()
   },
 
-  // remindPreorder 云函数不存在，改为客户端本地提示
+  // 管理员取消某个预购
+  onCancelPreorder(e) {
+    const preorderId = e.currentTarget.dataset.id
+    const dishName = e.currentTarget.dataset.name
+    const memberName = e.currentTarget.dataset.member
+    wx.showModal({
+      title: '取消预购',
+      content: `取消 ${memberName} 的「${dishName}」？`,
+      success: res => {
+        if (res.confirm) {
+          wx.showLoading({ title: '取消中...' })
+          callFunction('preorder-add', { action: 'cancel_other', preorder_id: preorderId }).then(() => {
+            wx.hideLoading()
+            wx.showToast({ title: '已取消', icon: 'success' })
+            this.loadData()
+          }).catch(() => {
+            wx.hideLoading()
+          })
+        }
+      }
+    })
+  },
+
+  // 管理员编辑某个预购
+  onEditPreorder(e) {
+    const { preorderId, dishId, memberOpenid, note } = e.currentTarget.dataset
+    const date = this.data.selectedDate
+    wx.navigateTo({
+      url: `/pages/preorder/preorder?editMode=true&preorderId=${preorderId}&dishId=${dishId}&date=${date}&note=${encodeURIComponent(note || '')}&forUser=${memberOpenid}`
+    })
+  },
+
   remindMember(e) {
     const name = e.currentTarget.dataset.name
     wx.showToast({ title: `已提醒 ${name} 去预定`, icon: 'none' })

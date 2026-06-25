@@ -70,12 +70,16 @@ exports.main = async (event, context) => {
     // 生成临时图片链接
     const imgIDs = list.map(d => d.image_url).filter(u => u && u.startsWith('cloud://'))
     if (imgIDs.length > 0) {
-      const tmpRes = await cloud.getTempFileURL({ fileList: imgIDs })
-      const urlMap = {}
-      tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
-      list.forEach(d => {
-        if (d.image_url && urlMap[d.image_url]) d.image_url = urlMap[d.image_url]
-      })
+      try {
+        const tmpRes = await cloud.getTempFileURL({ fileList: [...new Set(imgIDs)] })
+        const urlMap = {}
+        tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+        list.forEach(d => {
+          if (d.image_url && urlMap[d.image_url]) d.image_url = urlMap[d.image_url]
+        })
+      } catch (e) {
+        console.warn('[dish-trending] getTempFileURL failed, continuing without temp URLs:', e.message)
+      }
     }
 
     return {

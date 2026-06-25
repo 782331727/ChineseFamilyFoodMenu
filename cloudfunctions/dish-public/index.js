@@ -45,15 +45,19 @@ exports.main = async (event, context) => {
       }
     })
     if (imageFileIDs.length > 0) {
-      const tmpRes = await cloud.getTempFileURL({ fileList: imageFileIDs })
-      const urlMap = {}
-      tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
-      listRes.data.forEach(dish => {
-        if (dish.image_url && urlMap[dish.image_url]) dish.image_url = urlMap[dish.image_url]
-        if (dish.image_urls && Array.isArray(dish.image_urls)) {
-          dish.image_urls = dish.image_urls.map(url => urlMap[url] || url)
-        }
-      })
+      try {
+        const tmpRes = await cloud.getTempFileURL({ fileList: [...new Set(imageFileIDs)] })
+        const urlMap = {}
+        tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+        listRes.data.forEach(dish => {
+          if (dish.image_url && urlMap[dish.image_url]) dish.image_url = urlMap[dish.image_url]
+          if (dish.image_urls && Array.isArray(dish.image_urls)) {
+            dish.image_urls = dish.image_urls.map(url => urlMap[url] || url)
+          }
+        })
+      } catch (e) {
+        console.warn('[dish-public] getTempFileURL failed, continuing without temp URLs:', e.message)
+      }
     }
 
     return {

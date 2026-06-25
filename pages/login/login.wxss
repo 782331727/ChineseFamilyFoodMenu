@@ -1,0 +1,141 @@
+/* pages/login/login.wxss */
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FFF5EF 0%, #FFFFFF 40%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 60rpx;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部波浪装饰 */
+.top-wave {
+  position: absolute;
+  top: -80rpx;
+  left: -20%;
+  width: 140%;
+  height: 360rpx;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8C5A 50%, #FFB088 100%);
+  border-radius: 0 0 50% 50%;
+  opacity: 0.08;
+}
+
+/* Logo 区域 */
+.logo-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 180rpx;
+  margin-bottom: 80rpx;
+}
+
+.logo-circle {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8C5A 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 36rpx;
+  box-shadow: 0 12rpx 40rpx rgba(255, 107, 53, 0.3);
+}
+
+.logo-emoji {
+  font-size: 72rpx;
+}
+
+.app-name {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 16rpx;
+}
+
+.app-desc {
+  font-size: 28rpx;
+  color: #888888;
+  margin-bottom: 8rpx;
+}
+
+.app-sub {
+  font-size: 24rpx;
+  color: #BBBBBB;
+}
+
+/* 登录区域 */
+.login-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* 已登录 */
+.logged-in {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-bottom: 24rpx;
+  border: 4rpx solid #FF6B35;
+}
+
+.login-nick {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12rpx;
+}
+
+.login-tip {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+/* 微信一键登录按钮 */
+.wechat-login-btn {
+  width: 100%;
+  height: 100rpx;
+  background: linear-gradient(135deg, #07C160 0%, #06AD56 100%);
+  border-radius: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 8rpx 28rpx rgba(7, 193, 96, 0.35);
+  margin-bottom: 24rpx;
+}
+
+.wechat-login-btn::after {
+  border: none;
+}
+
+.wechat-icon {
+  font-size: 36rpx;
+}
+
+.privacy-tip {
+  font-size: 22rpx;
+  color: #BBBBBB;
+}
+
+/* 底部信息 */
+.bottom-info {
+  position: absolute;
+  bottom: 60rpx;
+  font-size: 22rpx;
+  color: #CCCCCC;
+}

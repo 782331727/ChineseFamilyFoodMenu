@@ -125,6 +125,7 @@
   height: 80rpx;
 }
 
+/* 登录按钮（微信 button 重置） */
 .login-btn {
   padding: 16rpx 40rpx;
   border-radius: 32rpx;
@@ -132,6 +133,16 @@
   color: #FFFFFF;
   font-size: 28rpx;
   font-weight: 600;
+  line-height: 1.4;
+  border: none;
+  text-align: center;
+  flex-shrink: 0;
+}
+.login-btn::after {
+  border: none;
+}
+.login-btn text {
+  color: #FFFFFF;
 }
 
 /* 口味偏好 */

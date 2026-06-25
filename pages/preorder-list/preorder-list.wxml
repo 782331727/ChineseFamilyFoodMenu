@@ -3,7 +3,7 @@
   <!-- 未加入家庭引导 -->
   <view class="card no-family-card" wx:if="{{!hasFamily}}">
     <view class="no-family-row">
-      <text class="no-family-icon">🏠</text>
+      <text class="no-family-icon">🏔</text>
       <view class="no-family-text">
         <text class="no-family-title">加入家庭即可查看预定</text>
         <text class="no-family-sub">创建或加入一个家庭，就能看到家人的预定情况了</text>
@@ -42,6 +42,13 @@
         <view class="dish-thumb" wx:for="{{member.dishes}}" wx:key="id" wx:for-item="dish">
           <image class="dish-thumb-image" src="{{dish.image || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
           <text class="dish-thumb-name">{{dish.name}}</text>
+          <!-- 管理员操作按钮 -->
+          <view class="admin-edit-btn" wx:if="{{isAdmin}}" bind:tap="onEditPreorder" data-preorder-id="{{dish.preorderId}}" data-dish-id="{{dish._id}}" data-member-openid="{{member.openid}}" data-note="{{dish.note}}">
+            <text>✎</text>
+          </view>
+          <view class="admin-cancel-btn" wx:if="{{isAdmin}}" bind:tap="onCancelPreorder" data-id="{{dish.preorderId}}" data-name="{{dish.name}}" data-member="{{member.nickName}}">
+            <text>✕</text>
+          </view>
         </view>
       </view>
 

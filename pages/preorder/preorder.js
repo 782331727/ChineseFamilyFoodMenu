@@ -1,7 +1,7 @@
 // pages/preorder/preorder.js
 const { callFunction } = require('../../utils/api')
 const { getFutureDays } = require('../../utils/date')
-const { mapDish, mealToCloud } = require('../../utils/mapper')
+const { mapDish, mealToCloud, mealToFront } = require('../../utils/mapper')
 const { hasPermission, refreshRole } = require('../../utils/auth')
 
 Page({
@@ -22,7 +22,11 @@ Page({
     remark: '',
     selectedCount: 0,
     othersPreorder: {},  // { dishId: '张三 李四' }
-    othersList: []       // [{ avatar, name, dishName }]
+    othersList: [],      // [{ avatar, name, dishName }]
+    // 编辑模式
+    editMode: false,
+    editPreorderId: '',
+    editForUser: ''
   },
 
   onLoad(options) {
@@ -30,8 +34,33 @@ Page({
     const selectedDate = dates[1] ? dates[1].date : dates[0].date
     const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
     this.setData({ dateOptions: dates, selectedDate, hasFamily: hf })
+
+    // 编辑模式：预填已有数据
+    if (options.editMode === 'true') {
+      const dishId = options.dishId || ''
+      const date = options.date || selectedDate
+      const note = decodeURIComponent(options.note || '')
+      const mealCloud = options.meal || 'lunch'
+      const mealFront = mealToFront(mealCloud) || 'noon'
+      const forUser = options.forUser || ''
+
+      this.setData({
+        editMode: true,
+        editPreorderId: options.preorderId || '',
+        editForUser: forUser,
+        selectedDate: date,
+        selectedMeal: mealFront,
+        remark: note
+      })
+
+      if (dishId) {
+        // 等菜品列表加载后再选中
+        this._pendingDishId = dishId
+      }
+    }
+
     if (hf) { this.loadDishes(); this.loadOthersPreorders() }
-    if (options.dishId) this.selectDish(options.dishId)
+    if (options.dishId && !this.data.editMode) this.selectDish(options.dishId)
   },
 
   onShow() {
@@ -70,6 +99,11 @@ Page({
     callFunction('dish-list', { page: 1, pageSize: 100 }).then(data => {
       const list = (data.list || []).map(mapDish)
       this.setData({ allDishes: list, dishList: this.filterDishes(list) })
+      // 编辑模式：等菜品加载完后自动选中
+      if (this._pendingDishId) {
+        this.selectDish(this._pendingDishId)
+        this._pendingDishId = ''
+      }
     }).catch(() => {})
   },
 
@@ -121,6 +155,41 @@ Page({
 
   submitPreorder() {
     if (this.data.selectedCount === 0) { wx.showToast({ title: '请至少选择一道菜', icon: 'none' }); return }
+
+    // 编辑模式：修改已有预定
+    if (this.data.editMode) {
+      const dishIds = Object.keys(this.data.selectedDishes)
+      if (dishIds.length === 0) { wx.showToast({ title: '请选择一道菜', icon: 'none' }); return }
+      const dishId = dishIds[0]
+      const date = this.data.selectedDate
+      const note = this.data.remark
+      const meal = this.data.selectedMeal
+      const mealCloud = mealToCloud(meal)
+      wx.showLoading({ title: '保存中...' })
+
+      const updateData = {
+        action: 'update',
+        preorder_id: this.data.editPreorderId,
+        dish_id: dishId,
+        target_date: date,
+        meal_type: mealCloud,
+        note: note || ''
+      }
+      if (this.data.editForUser) {
+        updateData.for_user = this.data.editForUser
+      }
+
+      callFunction('preorder-add', updateData).then(() => {
+        wx.hideLoading()
+        wx.showToast({ title: '修改成功', icon: 'success' })
+        setTimeout(() => { wx.navigateBack() }, 1200)
+      }).catch(() => {
+        wx.hideLoading()
+      })
+      return
+    }
+
+    // 新建模式：原有逻辑
     const dishIds = Object.keys(this.data.selectedDishes)
     const date = this.data.selectedDate
     const note = this.data.remark

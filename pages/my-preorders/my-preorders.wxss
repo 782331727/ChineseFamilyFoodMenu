@@ -1,0 +1,141 @@
+.container {
+  padding: 24rpx;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.loading-bar {
+  text-align: center;
+  padding: 80rpx 0;
+  font-size: 28rpx;
+  color: #999999;
+}
+
+/* 日期分组头 */
+.date-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 8rpx;
+  margin-top: 16rpx;
+}
+
+.date-label {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333333;
+}
+
+.date-count {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+/* 预购项 */
+.preorder-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  padding: 20rpx 24rpx;
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.item-image {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 14rpx;
+  margin-right: 20rpx;
+  background: #FFF8F3;
+  flex-shrink: 0;
+}
+
+.item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.item-note {
+  font-size: 24rpx;
+  color: #888888;
+  margin-top: 6rpx;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.item-date {
+  font-size: 22rpx;
+  color: #BBBBBB;
+  margin-top: 4rpx;
+  display: block;
+}
+
+/* 操作按钮 */
+.item-actions {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.action-btn {
+  padding: 12rpx 28rpx;
+  border-radius: 28rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.edit-btn {
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+}
+
+.cancel-btn {
+  background: rgba(231, 76, 60, 0.1);
+  color: #E74C3C;
+}
+
+/* 加载更多 */
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 32rpx 0;
+}
+
+.load-more-btn {
+  padding: 20rpx 60rpx;
+  border-radius: 40rpx;
+  background: #FFF5EF;
+  color: #FF6B35;
+  font-size: 26rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.load-more-btn.disabled {
+  opacity: 0.5;
+}
+
+.load-all-text {
+  text-align: center;
+  padding: 32rpx 0;
+  font-size: 24rpx;
+  color: #CCCCCC;
+}

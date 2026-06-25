@@ -100,9 +100,9 @@ exports.main = async (event, context) => {
 
         const familyId = user.family_id
 
-        // 统计添加的菜品数
+        // 统计添加的菜品数（排除已删除）
         const dishCountRes = await db.collection('dishes')
-          .where({ family_id: familyId, created_by: user._id })
+          .where({ family_id: familyId, is_deleted: _.neq(true) })
           .count()
 
         // 统计做菜次数（cook_history 中 cook_id 匹配）

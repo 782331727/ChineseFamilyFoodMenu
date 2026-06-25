@@ -8,6 +8,6 @@
     "test:roles": "node tests/role-test.js"
   },
   "devDependencies": {
-    "miniprogram-automator": "^1.0.26"
+    "miniprogram-automator": "^0.12.1"
   }
 }

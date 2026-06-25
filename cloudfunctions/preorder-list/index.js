@@ -42,9 +42,35 @@ exports.main = async (event, context) => {
     let dishesMap = {}
     if (dishIds.length > 0) {
       const dishesRes = await db.collection('dishes')
-        .where({ _id: _.in(dishIds) })
+        .where({ _id: _.in(dishIds), is_deleted: _.neq(true) })
         .get()
       dishesRes.data.forEach(d => { dishesMap[d._id] = d })
+    }
+
+    // 生成菜品图片临时链接（解决跨用户无法查看图片问题）
+    const dishImageIDs = []
+    Object.values(dishesMap).forEach(d => {
+      if (d.image_url && d.image_url.startsWith('cloud://')) dishImageIDs.push(d.image_url)
+      if (d.image && d.image.startsWith('cloud://')) dishImageIDs.push(d.image)
+      if (d.image_urls && Array.isArray(d.image_urls)) {
+        d.image_urls.forEach(url => { if (url && url.startsWith('cloud://')) dishImageIDs.push(url) })
+      }
+    })
+    if (dishImageIDs.length > 0) {
+      try {
+        const tmpRes = await cloud.getTempFileURL({ fileList: [...new Set(dishImageIDs)] })
+        const imgUrlMap = {}
+        tmpRes.fileList.forEach(f => { if (f.tempFileURL) imgUrlMap[f.fileID] = f.tempFileURL })
+        Object.values(dishesMap).forEach(d => {
+          if (d.image_url && imgUrlMap[d.image_url]) d.image_url = imgUrlMap[d.image_url]
+          if (d.image && imgUrlMap[d.image]) d.image = imgUrlMap[d.image]
+          if (d.image_urls && Array.isArray(d.image_urls)) {
+            d.image_urls = d.image_urls.map(url => imgUrlMap[url] || url)
+          }
+        })
+      } catch (e) {
+        console.warn('[preorder-list] dish image getTempFileURL failed:', e.message)
+      }
     }
 
     // 按成员分组
@@ -81,12 +107,16 @@ exports.main = async (event, context) => {
     // 生成头像临时链接
     const allAvatars = [...hasPreordered, ...notPreordered].map(m => m.avatar).filter(a => a && a.startsWith('cloud://'))
     if (allAvatars.length > 0) {
-      const tmpRes = await cloud.getTempFileURL({ fileList: allAvatars })
-      const urlMap = {}
-      tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
-      ;[...hasPreordered, ...notPreordered].forEach(m => {
-        if (m.avatar && urlMap[m.avatar]) m.avatar = urlMap[m.avatar]
-      })
+      try {
+        const tmpRes = await cloud.getTempFileURL({ fileList: [...new Set(allAvatars)] })
+        const urlMap = {}
+        tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+        ;[...hasPreordered, ...notPreordered].forEach(m => {
+          if (m.avatar && urlMap[m.avatar]) m.avatar = urlMap[m.avatar]
+        })
+      } catch (e) {
+        console.warn('[preorder-list] getTempFileURL failed, continuing without temp URLs:', e.message)
+      }
     }
 
     return {

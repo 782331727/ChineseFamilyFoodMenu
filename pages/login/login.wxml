@@ -1,0 +1,41 @@
+<!-- pages/login/login.wxml -->
+<view class="login-page">
+  <!-- 顶部装饰 -->
+  <view class="top-wave"></view>
+
+  <!-- Logo 区域 -->
+  <view class="logo-area">
+    <view class="logo-circle">
+      <text class="logo-emoji">🍳</text>
+    </view>
+    <text class="app-name">张姐的私房菜谱</text>
+    <text class="app-desc">家庭美食菜单管理</text>
+    <text class="app-sub">让做饭和吃饭都有条不紊</text>
+  </view>
+
+  <!-- 登录按钮区域 -->
+  <view class="login-area">
+    <!-- 已登录状态 -->
+    <block wx:if="{{isLogin}}">
+      <view class="logged-in">
+        <image class="login-avatar" src="{{userInfo.avatarUrl || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+        <text class="login-nick">{{userInfo.nickName || '微信用户'}}</text>
+        <text class="login-tip">已登录，正在进入...</text>
+      </view>
+    </block>
+
+    <!-- 未登录：一键登录按钮 -->
+    <block wx:else>
+      <button class="wechat-login-btn" open-type="getUserInfo" bindgetuserinfo="onWechatLogin" loading="{{loading}}">
+        <text class="wechat-icon">💬</text>
+        <text>{{loading ? '登录中...' : '微信一键登录'}}</text>
+      </button>
+      <text class="privacy-tip">登录即表示同意隐私政策</text>
+    </block>
+  </view>
+
+  <!-- 底部 -->
+  <view class="bottom-info">
+    <text>由 DeepSeek AI 驱动智能推荐</text>
+  </view>
+</view>

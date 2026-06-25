@@ -107,6 +107,7 @@
 
 .dish-thumb {
   width: 120rpx;
+  position: relative;
 }
 
 .dish-thumb-image {
@@ -125,6 +126,46 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* 管理员取消按钮 */
+.admin-cancel-btn {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: rgba(231, 76, 60, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-cancel-btn text {
+  color: #FFFFFF;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+/* 管理员编辑按钮 */
+.admin-edit-btn {
+  position: absolute;
+  top: -8rpx;
+  left: -8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: rgba(255, 107, 53, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-edit-btn text {
+  color: #FFFFFF;
+  font-size: 20rpx;
+  font-weight: 700;
 }
 
 /* 备注 */

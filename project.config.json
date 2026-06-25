@@ -43,7 +43,8 @@
     "localPlugins": false,
     "condition": false,
     "swc": false,
-    "disableSWC": true
+    "disableSWC": true,
+    "ignoreDevUnusedFiles": false
   },
   "compileType": "miniprogram",
   "libVersion": "3.3.4",
@@ -55,7 +56,40 @@
   },
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": ".cursor"
+      },
+      {
+        "type": "folder",
+        "value": ".vscode"
+      },
+      {
+        "type": "folder",
+        "value": "agent-pkg"
+      },
+      {
+        "type": "folder",
+        "value": "config"
+      },
+      {
+        "type": "folder",
+        "value": "tests"
+      },
+      {
+        "type": "folder",
+        "value": "cloudfunctions"
+      },
+      {
+        "type": "file",
+        "value": "skills-lock.json"
+      },
+      {
+        "type": "file",
+        "value": "package.json"
+      }
+    ],
     "include": []
   },
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"

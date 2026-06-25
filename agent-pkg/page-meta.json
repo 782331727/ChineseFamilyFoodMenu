@@ -1,0 +1,58 @@
+{
+  "pages": [
+    {
+      "path": "pages/dishes/dishes",
+      "name": "菜品库",
+      "description": "查看家庭菜品库中的所有菜品，按分类、难度筛选"
+    },
+    {
+      "path": "pages/preorder/preorder",
+      "name": "预定菜品",
+      "description": "选择日期和餐次，预定想吃的菜品",
+      "query": {
+        "type": "object",
+        "properties": {
+          "dishId": {
+            "type": "string",
+            "description": "预选菜品ID"
+          }
+        }
+      }
+    },
+    {
+      "path": "pages/preorder-list/preorder-list",
+      "name": "预定总览",
+      "description": "查看全家在某天的预定情况"
+    },
+    {
+      "path": "pages/my-preorders/my-preorders",
+      "name": "我的预订单",
+      "description": "查看自己的所有预购记录"
+    },
+    {
+      "path": "pages/shopping/shopping",
+      "name": "采购清单",
+      "description": "查看和管理本周采购清单"
+    },
+    {
+      "path": "pages/family/family",
+      "name": "家庭管理",
+      "description": "查看家庭成员、管理角色、创建/加入家庭"
+    },
+    {
+      "path": "pages/dish-detail/dish-detail",
+      "name": "菜品详情",
+      "description": "查看菜品的详细信息、食材和烹饪步骤",
+      "query": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "菜品ID"
+          }
+        },
+        "required": ["id"]
+      }
+    }
+  ]
+}

@@ -93,6 +93,11 @@
   font-weight: 600;
 }
 
+/* 菜品滚动框 */
+.dish-scroll {
+  max-height: 600rpx;
+}
+
 /* 菜品网格 */
 .dish-grid {
   display: flex;

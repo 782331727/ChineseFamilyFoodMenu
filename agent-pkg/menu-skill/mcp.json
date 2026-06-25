@@ -1,0 +1,96 @@
+{
+  "apis": [
+    {
+      "name": "getDishList",
+      "description": "查询菜品库列表，支持按分类、难度筛选和关键词搜索",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cuisine": {
+            "type": "string",
+            "description": "菜品分类筛选，如：家常、川菜、粤菜等"
+          },
+          "difficulty": {
+            "type": "string",
+            "description": "难度筛选，如：easy、medium、hard"
+          },
+          "keyword": {
+            "type": "string",
+            "description": "搜索关键词，按菜品名称搜索"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "description": "菜品列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_id": { "type": "string" },
+                "name": { "type": "string" },
+                "image": { "type": "string" },
+                "category": { "type": "string" },
+                "difficulty": { "type": "string" },
+                "cookTime": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "getDishDetail",
+      "description": "获取某道菜品的详细信息，包括食材、步骤、营养标签",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dishId": {
+            "type": "string",
+            "description": "菜品ID"
+          }
+        },
+        "required": ["dishId"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "image": { "type": "string" },
+          "category": { "type": "string" },
+          "difficulty": { "type": "string" },
+          "cookTime": { "type": "number" },
+          "ingredients": { "type": "array" },
+          "steps": { "type": "array" },
+          "tags": { "type": "array" }
+        }
+      }
+    },
+    {
+      "name": "getTodayMenu",
+      "description": "查询指定日期的菜单安排",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "日期，格式 YYYY-MM-DD，不传则默认今天"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string" },
+          "meals": {
+            "type": "array",
+            "description": "各餐次的菜品列表"
+          }
+        }
+      }
+    }
+  ]
+}

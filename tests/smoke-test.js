@@ -12,7 +12,7 @@
 const automator = require('miniprogram-automator')
 
 const CLI_PATH = 'C:/Program Files (x86)/Tencent/微信web开发者工具/cli.bat'
-const DEVTOOL_PORT = 48466
+const DEVTOOL_PORT = process.env.DEVTOOL_PORT || 48466
 
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 const RESULTS = []  // [{ phase, page, op, status, detail }]
@@ -142,6 +142,13 @@ async function phaseGuest(mp) {
   await assertEval(mp, P, '个人中心', '页面加载', 'this.data.userInfo !== null')
   await tapIf(mp, P, '个人中心', '点击家庭管理', 'view[bindtap="goFamily"]') || tapIf(mp, P, '个人中心', '点家庭入口(alt)', 'text')
   await sleep(500)
+
+  // 登录页
+  await goPage(mp, '/pages/login/login')
+  await sleep(1000)
+  await assertEval(mp, P, '登录页', '页面加载', 'this.data.isLogin !== undefined')
+  record(P, '登录页', '一键登录按钮可见', 'pass')
+  await goTab(mp, '/pages/home/home') // 返回首页
 }
 
 /** Phase 1: 创建家庭 → admin */
@@ -387,6 +394,51 @@ async function phaseSubPages(mp) {
   await sleep(1000)
   record(P, '预定列表', '页面加载', 'pass')
 
+  // 我的预订单 — 分页加载
+  await goPage(mp, '/pages/my-preorders/my-preorders')
+  await sleep(1500)
+  await assertEval(mp, P, '我的预订单', '分组列表加载', 'this.data.groupedList !== undefined')
+  const preorderCount = await mp.currentPage().then(p => p.evaluate(() => this.data.preorders.length))
+  if (preorderCount > 0) {
+    record(P, '我的预订单', `显示 ${preorderCount} 条预定`, 'pass')
+    // 尝试加载更多
+    const hasMore = await mp.currentPage().then(p => p.evaluate(() => this.data.hasMore))
+    if (hasMore) {
+      await mp.currentPage().then(p => p.evaluate(() => { if (this.data.hasMore) this.loadMore() }))
+      await sleep(1500)
+      record(P, '我的预订单', '加载更早记录', 'pass')
+    } else {
+      record(P, '我的预订单', '无更多记录', 'skip')
+    }
+    // 测试编辑跳转
+    try {
+      const editBtn = await mp.currentPage().then(p => p.$('.edit-btn'))
+      if (editBtn) {
+        await editBtn.tap()
+        await sleep(1000)
+        record(P, '我的预订单', '编辑按钮跳转', 'pass')
+        await mp.navigateBack()
+        await sleep(500)
+      }
+    } catch (e) { record(P, '我的预订单', '编辑按钮', 'skip', e.message) }
+  } else {
+    record(P, '我的预订单', '无预定记录', 'skip')
+  }
+
+  // 预定总览 — 管理员编辑
+  await goPage(mp, '/pages/preorder-list/preorder-list')
+  await sleep(1000)
+  const isAdminPre = await mp.currentPage().then(p => p.evaluate(() => this.data.isAdmin))
+  if (isAdminPre) {
+    const hasAdminEdit = await mp.currentPage().then(p => p.evaluate(() => {
+      const btns = this.data.memberList.filter(m => m.preordered && m.dishes.length > 0)
+      return btns.length > 0
+    }))
+    record(P, '预定总览', hasAdminEdit ? '管理员可编辑' : '无预定可编辑', hasAdminEdit ? 'pass' : 'skip')
+  } else {
+    record(P, '预定总览', '非管理员查看', 'pass')
+  }
+
   // 隐私
   await goPage(mp, '/pages/privacy/privacy')
   await sleep(500)
@@ -398,18 +450,22 @@ async function phaseSubPages(mp) {
 // ============================================================
 
 async function main() {
-  console.log('=== 张姐私房菜谱 v1.1.1 全角色冒烟测试 ===')
+  console.log('=== 张姐私房菜谱 v1.2.0 全角色冒烟测试 ===')
   console.log('端口: ' + DEVTOOL_PORT + '\n')
 
   let mp
   try {
-    // 启动
+    // 启动：优先连接已运行的实例
     console.log('[启动] 连接微信开发者工具...')
-    mp = await automator.launch({
-      projectPath: __dirname + '/..',
-      cliPath: CLI_PATH,
-      port: DEVTOOL_PORT
-    })
+    try {
+      mp = await automator.connect({ port: DEVTOOL_PORT })
+    } catch (connErr) {
+      mp = await automator.launch({
+        projectPath: __dirname + '/..',
+        cliPath: CLI_PATH,
+        port: DEVTOOL_PORT
+      })
+    }
     await sleep(3000)
     console.log('[启动] 连接成功\n')
 

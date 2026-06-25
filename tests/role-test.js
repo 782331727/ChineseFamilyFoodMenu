@@ -18,7 +18,7 @@
 const automator = require('miniprogram-automator')
 
 const CLI_PATH = 'C:/Program Files (x86)/Tencent/微信web开发者工具/cli.bat'
-const DEVTOOL_PORT = 48466
+const DEVTOOL_PORT = process.env.DEVTOOL_PORT || 48466
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 
@@ -39,6 +39,8 @@ const ROLE_CHECKS = {
     { page: 'pages/preorder/preorder', name: '预定→家庭引导显示',     eval: 'this.data.hasFamily === false', expect: true },
     { page: 'pages/shopping/shopping', name: '采购→无数据',           eval: 'this.data.hasData === false', expect: true },
     { page: 'pages/dish-detail/dish-detail', name: '菜品详情→编辑按钮隐藏', eval: 'this.data.canManage === false', expect: true },
+    { page: 'pages/login/login', name: '登录页→页面可访问',           eval: 'this.data.isLogin !== undefined', expect: true },
+    { page: 'pages/my-preorders/my-preorders', name: '我的预定→空列表不报错', eval: 'this.data.groupedList !== undefined', expect: true },
   ],
   // 家长 - 全部权限
   admin: [
@@ -46,6 +48,8 @@ const ROLE_CHECKS = {
     { page: 'pages/dishes/dishes', name: '菜品库→回收站可见',        eval: 'this.data.canManageDishes === true', expect: true },
     { page: 'pages/shopping/shopping', name: '采购→批量编辑可用',    eval: 'this.data.canManage === true', expect: true },
     { page: 'pages/family/family',   name: '家庭→角色管理可用',      eval: 'this.data.isAdmin === true', expect: true },
+    { page: 'pages/preorder-list/preorder-list', name: '预定总览→管理员可编辑', eval: 'this.data.isAdmin === true', expect: true },
+    { page: 'pages/my-preorders/my-preorders', name: '我的预定→分页可用',     eval: 'this.data.historyDays >= 3', expect: true },
   ],
   // 大厨 - 菜品/菜单/采购权限，无家庭管理
   cook: [
@@ -58,12 +62,15 @@ const ROLE_CHECKS = {
     { page: 'pages/dishes/dishes', name: '菜品库→批量管理隐藏',      eval: 'this.data.canManageDishes === false', expect: true },
     { page: 'pages/shopping/shopping', name: '采购→批量编辑不可用',  eval: 'this.data.canManage === false', expect: true },
     { page: 'pages/preorder/preorder', name: '预定→可操作',           eval: 'this.data.hasFamily === true', expect: true },
+    { page: 'pages/my-preorders/my-preorders', name: '我的预定→可查看',         eval: 'this.data.groupedList !== undefined', expect: true },
+    { page: 'pages/preorder-list/preorder-list', name: '预定总览→非管理员查看', eval: 'this.data.isAdmin === false', expect: true },
   ],
   // 祖国的花朵 - 同 eater
   child: [
     { page: 'pages/dishes/dishes', name: '菜品库→批量管理隐藏',      eval: 'this.data.canManageDishes === false', expect: true },
     { page: 'pages/shopping/shopping', name: '采购→批量编辑不可用',  eval: 'this.data.canManage === false', expect: true },
     { page: 'pages/preorder/preorder', name: '预定→可操作',           eval: 'this.data.hasFamily === true', expect: true },
+    { page: 'pages/my-preorders/my-preorders', name: '我的预定→可查看', eval: 'this.data.groupedList !== undefined', expect: true },
   ],
 }
 
@@ -75,11 +82,17 @@ async function runRoleTest(role) {
     return { role, passed: 0, failed: 0, skipped: 0 }
   }
 
-  const miniProgram = await automator.launch({
-    projectPath: __dirname + '/..',
-    cliPath: CLI_PATH,
-    port: DEVTOOL_PORT
-  })
+  const miniProgram = await (async () => {
+    try {
+      return await automator.connect({ port: DEVTOOL_PORT })
+    } catch (connErr) {
+      return await automator.launch({
+        projectPath: __dirname + '/..',
+        cliPath: CLI_PATH,
+        port: DEVTOOL_PORT
+      })
+    }
+  })()
   await sleep(3000)
 
   let passed = 0, failed = 0

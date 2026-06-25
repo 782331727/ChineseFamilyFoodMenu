@@ -272,5 +272,13 @@ Page({
       wx.setStorageSync('familyInfo', app.globalData.familyInfo)
       wx.showToast({ title: '已更新', icon: 'success' })
     }).catch(() => {})
+  },
+
+  // 头像加载失败时回退到默认头像
+  onAvatarError(e) {
+    const index = e.currentTarget.dataset.index
+    if (index !== undefined && this.data.memberList[index]) {
+      this.setData({ [`memberList[${index}].avatarUrl`]: '' })
+    }
   }
 })

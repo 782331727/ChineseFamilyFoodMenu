@@ -47,14 +47,16 @@
       <input class="search-input-sm" placeholder="搜索菜品" value="{{keyword}}" bindinput="onSearchInput" confirm-type="search"></input>
       <text class="search-clear-sm" wx:if="{{keyword}}" bind:tap="clearSearch">✕</text>
     </view>
-    <view class="dish-grid" wx:if="{{dishList.length > 0}}">
-      <view class="dish-grid-item {{selectedDishes[item._id] ? 'selected' : ''}}" wx:for="{{dishList}}" wx:key="_id" data-id="{{item._id}}" data-name="{{item.name}}" bind:tap="toggleDish">
-        <image class="grid-dish-image" src="{{item.image || '/assets/default-avatar.png'}}" mode="aspectFill" lazy-load="{{true}}"></image>
-        <text class="grid-dish-name">{{item.name}}</text>
-        <text class="grid-dish-booker" wx:if="{{othersPreorder[item._id]}}">{{othersPreorder[item._id]}}</text>
-        <view class="check-mark" wx:if="{{selectedDishes[item._id]}}">✓</view>
+    <scroll-view class="dish-scroll" scroll-y wx:if="{{dishList.length > 0}}">
+      <view class="dish-grid">
+        <view class="dish-grid-item {{selectedDishes[item._id] ? 'selected' : ''}}" wx:for="{{dishList}}" wx:key="_id" data-id="{{item._id}}" data-name="{{item.name}}" bind:tap="toggleDish">
+          <image class="grid-dish-image" src="{{item.image || '/assets/default-avatar.png'}}" mode="aspectFill" lazy-load="{{true}}"></image>
+          <text class="grid-dish-name">{{item.name}}</text>
+          <text class="grid-dish-booker" wx:if="{{othersPreorder[item._id]}}">{{othersPreorder[item._id]}}</text>
+          <view class="check-mark" wx:if="{{selectedDishes[item._id]}}">✓</view>
+        </view>
       </view>
-    </view>
+    </scroll-view>
     <view class="empty-text" wx:else>
       <text>菜品库暂无菜品</text>
     </view>
@@ -92,7 +94,7 @@
   <!-- 底部提交 -->
   <view class="bottom-bar">
     <view class="btn-primary submit-btn {{selectedCount === 0 ? 'disabled' : ''}}" bind:tap="submitPreorder">
-      <text>提交预定</text>
+      <text>{{editMode ? '保存修改' : '提交预定'}}</text>
     </view>
   </view>
 

@@ -15,9 +15,10 @@
         <text>{{roleText}}</text>
       </view>
     </view>
-    <view class="login-btn" wx:if="{{!isLogin}}" bind:tap="handleLogin">
-      <text>登录</text>
-    </view>
+    <!-- 微信一键登录按钮（游客态显示） -->
+    <button class="login-btn" wx:if="{{!isLogin}}" open-type="getUserInfo" bindgetuserinfo="onGetUserInfo">
+      <text>微信一键登录</text>
+    </button>
   </view>
 
   <!-- 编辑昵称弹窗 -->
@@ -43,12 +44,12 @@
         <text class="taste-value">{{taste.spicy}}/5</text>
       </view>
       <view class="taste-item">
-        <text class="taste-label">🍬 甜度</text>
+        <text class="taste-label">🍿 甜度</text>
         <slider class="taste-slider" min="0" max="5" step="1" value="{{taste.sweet}}" data-key="sweet" bindchange="onTasteChange" block-color="#FF6B35" activeColor="#FF6B35"></slider>
         <text class="taste-value">{{taste.sweet}}/5</text>
       </view>
       <view class="taste-item">
-        <text class="taste-label">🍋 酸度</text>
+        <text class="taste-label">🍑 酸度</text>
         <slider class="taste-slider" min="0" max="5" step="1" value="{{taste.sour}}" data-key="sour" bindchange="onTasteChange" block-color="#FF6B35" activeColor="#FF6B35"></slider>
         <text class="taste-value">{{taste.sour}}/5</text>
       </view>
@@ -106,19 +107,25 @@
   <view class="section">
     <view class="menu-list card">
       <view class="menu-item" bind:tap="goFamily">
-        <text class="menu-icon">👨‍👩‍👧‍👦</text>
+        <text class="menu-icon">🏠</text>
         <text class="menu-text">家庭管理</text>
         <text class="menu-arrow">›</text>
       </view>
       <view class="menu-divider"></view>
-      <view class="menu-item" bind:tap="goPreorderList">
+      <view class="menu-item" bind:tap="goMyPreorders">
         <text class="menu-icon">📋</text>
+        <text class="menu-text">我的预订单</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-divider"></view>
+      <view class="menu-item" bind:tap="goPreorderList">
+        <text class="menu-icon">👥</text>
         <text class="menu-text">预定总览</text>
         <text class="menu-arrow">›</text>
       </view>
       <view class="menu-divider"></view>
       <view class="menu-item" bind:tap="goPrivacy">
-        <text class="menu-icon">🔒</text>
+        <text class="menu-icon">🛡️</text>
         <text class="menu-text">隐私政策</text>
         <text class="menu-arrow">›</text>
       </view>

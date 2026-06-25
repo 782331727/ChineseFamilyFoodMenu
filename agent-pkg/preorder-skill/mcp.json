@@ -1,0 +1,95 @@
+{
+  "apis": [
+    {
+      "name": "getMyPreorders",
+      "description": "查看当前用户的所有预订单，按日期倒序排列",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "preorders": {
+            "type": "array",
+            "description": "预定列表"
+          }
+        }
+      }
+    },
+    {
+      "name": "addPreorder",
+      "description": "新增菜品预定。需要用户已加入家庭。同一个用户同一天不可重复预定同菜品",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_date": {
+            "type": "string",
+            "description": "预定日期，格式 YYYY-MM-DD"
+          },
+          "dish_id": {
+            "type": "string",
+            "description": "菜品ID"
+          },
+          "meal_type": {
+            "type": "string",
+            "description": "餐次：breakfast（早餐）、lunch（午餐）、dinner（晚餐），默认 lunch",
+            "enum": ["breakfast", "lunch", "dinner"]
+          },
+          "note": {
+            "type": "string",
+            "description": "备注信息，如口味要求"
+          }
+        },
+        "required": ["target_date", "dish_id"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "cancelPreorder",
+      "description": "取消自己的预定，需要预定ID",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "preorder_id": {
+            "type": "string",
+            "description": "预定记录ID"
+          }
+        },
+        "required": ["preorder_id"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "getFamilyPreorders",
+      "description": "查看全家在指定日期的预定总览，包括谁预定了什么菜、谁还没预定",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_date": {
+            "type": "string",
+            "description": "查询日期，格式 YYYY-MM-DD，不传则默认明天"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string" },
+          "preordered": { "type": "array" },
+          "not_preordered": { "type": "array" }
+        }
+      }
+    }
+  ]
+}

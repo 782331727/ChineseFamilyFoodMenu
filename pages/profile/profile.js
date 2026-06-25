@@ -20,7 +20,7 @@ Page({
   onLoad() { this.initUserInfo() },
   onShow() {
     refreshRole().then(() => this.initUserInfo())
-    // 短期缓存：8秒内跳过
+    // 短期缓存：15秒内跳过
     const now = Date.now()
     if (this._lastFetch && now - this._lastFetch < 15000) return
     this._lastFetch = now
@@ -43,17 +43,74 @@ Page({
     })
   },
 
+  // 微信一键登录：通过 button open-type="getUserInfo" 触发
+  onGetUserInfo(e) {
+    const wxUser = e.detail && e.detail.userInfo
+    if (!wxUser) {
+      // 用户拒绝授权，回退到 wx.getUserProfile（如果可用）
+      this.handleLogin()
+      return
+    }
+    this.saveUserInfoAndLogin(wxUser)
+  },
+
+  // 原登录方式（wx.getUserProfile 回退）
   handleLogin() {
     const app = getApp()
-    app.getUserProfile().then(wxUser => {
-      const info = { nickName: wxUser.nickName, avatarUrl: wxUser.avatarUrl }
-      this.setData({ userInfo: info, isLogin: true })
-      callFunction('profile-manage', {
-        action: 'update_user_info',
-        nickname: info.nickName,
-        avatar: info.avatarUrl
-      }).then(() => this.loadProfile()).catch(() => {})
-    }).catch(() => { wx.showToast({ title: '已取消', icon: 'none' }) })
+    // 尝试 wx.getUserProfile（部分新版基础库已不可用）
+    if (wx.getUserProfile) {
+      wx.getUserProfile({
+        desc: '用于完善个人资料',
+        success: res => {
+          this.saveUserInfoAndLogin(res.userInfo)
+        },
+        fail: () => { wx.showToast({ title: '已取消', icon: 'none' }) }
+      })
+    } else {
+      wx.showToast({ title: '请点击上方按钮授权', icon: 'none' })
+    }
+  },
+
+  saveUserInfoAndLogin(wxUser) {
+    const info = { nickName: wxUser.nickName, avatarUrl: wxUser.avatarUrl }
+    this.setData({ userInfo: info, isLogin: true })
+
+    // 更新全局与缓存
+    const app = getApp()
+    app.globalData.userInfo = info
+    app.globalData.isLogin = true
+    wx.setStorageSync('userInfo', info)
+
+    // 上传头像到云存储（如果有头像）
+    if (wxUser.avatarUrl && wxUser.avatarUrl.startsWith('https://')) {
+      let loginData = { nickname: info.nickName, avatar: info.avatarUrl }
+      callFunction('login', loginData).then(res => {
+        if (res && res.user) {
+          app.globalData.openid = res.user.openid || app.globalData.openid
+          app.globalData.role = res.user.role || 'eater'
+          app.globalData.familyId = res.user.family_id || ''
+          wx.setStorageSync('openid', app.globalData.openid)
+          wx.setStorageSync('role', app.globalData.role)
+          wx.setStorageSync('familyId', app.globalData.familyId)
+        }
+        wx.showToast({ title: '登录成功', icon: 'success' })
+        this.loadProfile()
+        this.loadStats()
+      }).catch(() => {})
+    } else {
+      // 纯文本昵称，直接更新
+      callFunction('login', { nickname: info.nickName }).then(res => {
+        if (res && res.user) {
+          app.globalData.openid = res.user.openid || app.globalData.openid
+          app.globalData.role = res.user.role || 'eater'
+          wx.setStorageSync('openid', app.globalData.openid)
+          wx.setStorageSync('role', app.globalData.role)
+        }
+        wx.showToast({ title: '登录成功', icon: 'success' })
+        this.loadProfile()
+        this.loadStats()
+      }).catch(() => {})
+    }
   },
 
   // === 编辑昵称 ===
@@ -150,6 +207,7 @@ Page({
 
   goFamily() { wx.navigateTo({ url: '/pages/family/family' }) },
   goPreorderList() { wx.navigateTo({ url: '/pages/preorder-list/preorder-list' }) },
+  goMyPreorders() { wx.navigateTo({ url: '/pages/my-preorders/my-preorders' }) },
   goPrivacy() { wx.navigateTo({ url: '/pages/privacy/privacy' }) },
-  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱\n\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) }
+  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.0\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) }
 })

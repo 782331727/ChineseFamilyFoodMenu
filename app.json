@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/home/home",
+    "pages/login/login",
     "pages/dishes/dishes",
     "pages/preorder/preorder",
     "pages/shopping/shopping",
@@ -8,6 +9,7 @@
     "pages/dish-detail/dish-detail",
     "pages/dish-add/dish-add",
     "pages/preorder-list/preorder-list",
+    "pages/my-preorders/my-preorders",
     "pages/family/family",
     "pages/privacy/privacy"
   ],
@@ -20,6 +22,7 @@
     "enablePullDownRefresh": true
   },
   "tabBar": {
+    "custom": false,
     "color": "#999999",
     "selectedColor": "#FF6B35",
     "backgroundColor": "#ffffff",

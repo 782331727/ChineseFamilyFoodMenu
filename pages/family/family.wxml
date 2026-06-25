@@ -41,7 +41,7 @@
         <text class="title">家庭成员</text>
       </view>
       <view class="card member-item" wx:for="{{memberList}}" wx:key="openid">
-        <image class="avatar" src="{{item.avatarUrl || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+        <image class="avatar" src="{{item.avatarUrl || '/assets/default-avatar.png'}}" mode="aspectFill" binderror="onAvatarError" data-index="{{index}}"></image>
         <view class="member-info">
           <view class="member-name-row">
             <text class="member-name">{{item.nickName}}</text>

@@ -60,7 +60,7 @@ exports.main = async (event, context) => {
       db.collection('dishes').where(query)
         .orderBy('created_at', 'desc')
         .skip(skip).limit(limit)
-        .field({ name: true, image_url: true, image_urls: true, cuisine: true, difficulty: true, cook_time: true, nutrition_tags: true, is_public: true, source: true, avg_rating: true, rating_count: true, created_at: true, updated_at: true, family_id: true })
+        
         .get()
     ])
 
@@ -68,20 +68,26 @@ exports.main = async (event, context) => {
     const imageFileIDs = []
     listRes.data.forEach(dish => {
       if (dish.image_url && dish.image_url.startsWith('cloud://')) imageFileIDs.push(dish.image_url)
+      if (dish.image && dish.image.startsWith('cloud://')) imageFileIDs.push(dish.image)
       if (dish.image_urls && Array.isArray(dish.image_urls)) {
         dish.image_urls.forEach(url => { if (url && url.startsWith('cloud://')) imageFileIDs.push(url) })
       }
     })
     if (imageFileIDs.length > 0) {
-      const tmpRes = await cloud.getTempFileURL({ fileList: imageFileIDs })
-      const urlMap = {}
-      tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
-      listRes.data.forEach(dish => {
-        if (dish.image_url && urlMap[dish.image_url]) dish.image_url = urlMap[dish.image_url]
-        if (dish.image_urls && Array.isArray(dish.image_urls)) {
-          dish.image_urls = dish.image_urls.map(url => urlMap[url] || url)
-        }
-      })
+      try {
+        const tmpRes = await cloud.getTempFileURL({ fileList: [...new Set(imageFileIDs)] })
+        const urlMap = {}
+        tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+        listRes.data.forEach(dish => {
+          if (dish.image_url && urlMap[dish.image_url]) dish.image_url = urlMap[dish.image_url]
+          if (dish.image && urlMap[dish.image]) dish.image = urlMap[dish.image]
+          if (dish.image_urls && Array.isArray(dish.image_urls)) {
+            dish.image_urls = dish.image_urls.map(url => urlMap[url] || url)
+          }
+        })
+      } catch (e) {
+        console.warn('[dish-list] getTempFileURL failed, continuing without temp URLs:', e.message)
+      }
     }
 
     return {
