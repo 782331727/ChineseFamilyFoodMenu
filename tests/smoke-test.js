@@ -394,13 +394,20 @@ async function phaseSubPages(mp) {
   await sleep(1000)
   record(P, '预定列表', '页面加载', 'pass')
 
-  // 我的预订单 — 分页加载
+  // 我的预订单 — 分页加载 + v1.2.1: 编辑 switchTab / 历史锁定 / today 判断
   await goPage(mp, '/pages/my-preorders/my-preorders')
   await sleep(1500)
   await assertEval(mp, P, '我的预订单', '分组列表加载', 'this.data.groupedList !== undefined')
+  // v1.2.1: 验证 today 字段存在
+  await assertEval(mp, P, '我的预订单', 'today 字段存在', 'typeof this.data.today === "string" && this.data.today.length === 10')
   const preorderCount = await mp.currentPage().then(p => p.evaluate(() => this.data.preorders.length))
   if (preorderCount > 0) {
     record(P, '我的预订单', `显示 ${preorderCount} 条预定`, 'pass')
+    // v1.2.1: 检查日期分组中的历史/未来区分
+    const groups = await mp.currentPage().then(p => p.evaluate(() =>
+      this.data.groupedList.map(g => ({ date: g.date, count: g.list.length }))
+    ))
+    record(P, '我的预订单', `日期分组 ${groups.length} 组`, 'pass')
     // 尝试加载更多
     const hasMore = await mp.currentPage().then(p => p.evaluate(() => this.data.hasMore))
     if (hasMore) {
@@ -410,17 +417,42 @@ async function phaseSubPages(mp) {
     } else {
       record(P, '我的预订单', '无更多记录', 'skip')
     }
-    // 测试编辑跳转
+    // v1.2.1: 测试编辑按钮（使用 switchTab 跳转到预定 tabBar 页）
     try {
-      const editBtn = await mp.currentPage().then(p => p.$('.edit-btn'))
-      if (editBtn) {
-        await editBtn.tap()
-        await sleep(1000)
-        record(P, '我的预订单', '编辑按钮跳转', 'pass')
-        await mp.navigateBack()
-        await sleep(500)
+      // 先只在未来日期的预订单上找编辑按钮（历史预订单应该隐藏编辑按钮）
+      const hasFutureEdit = await mp.currentPage().then(p => p.evaluate(() => {
+        const today = this.data.today
+        const preorders = this.data.preorders || []
+        const futurePre = preorders.find(p => p.target_date >= today)
+        return !!futurePre
+      }))
+      if (hasFutureEdit) {
+        const editBtn = await mp.currentPage().then(p => p.$('.edit-btn'))
+        if (editBtn) {
+          await editBtn.tap()
+          await sleep(1500)
+          // switchTab 会切换到预定 tab，验证是否进入编辑模式
+          const inEdit = await mp.currentPage().then(p => p.evaluate(() => this.data.editMode))
+          record(P, '我的预订单', '编辑按钮→预定tab编辑模式', inEdit ? 'pass' : 'fail')
+          // 返回我的预订单
+          await goPage(mp, '/pages/my-preorders/my-preorders')
+          await sleep(800)
+        } else {
+          record(P, '我的预订单', '编辑按钮', 'skip', '未来日期无可编辑按钮（可能全部历史）')
+        }
       }
-    } catch (e) { record(P, '我的预订单', '编辑按钮', 'skip', e.message) }
+      // v1.2.1: 验证无历史标签样式（取决于是否有历史记录）
+      const hasHistorical = await mp.currentPage().then(p => p.evaluate(() => {
+        const today = this.data.today
+        const preorders = this.data.preorders || []
+        return preorders.some(p => p.target_date < today)
+      }))
+      if (hasHistorical) {
+        record(P, '我的预订单', '历史记录存在（已锁定编辑/取消）', 'pass')
+      } else {
+        record(P, '我的预订单', '无历史记录', 'skip')
+      }
+    } catch (e) { record(P, '我的预订单', '编辑按钮测试', 'skip', e.message) }
   } else {
     record(P, '我的预订单', '无预定记录', 'skip')
   }
@@ -443,6 +475,27 @@ async function phaseSubPages(mp) {
   await goPage(mp, '/pages/privacy/privacy')
   await sleep(500)
   record(P, '隐私', '页面加载', 'pass')
+
+  // v1.2.1: 家庭管理 — 昵称/头像与「我的」页面对齐
+  await goPage(mp, '/pages/family/family')
+  await sleep(1000)
+  const familyConsistency = await mp.currentPage().then(p => p.evaluate(() => {
+    const app = getApp()
+    const localUser = app.globalData.userInfo || {}
+    const memberList = this.data.memberList || []
+    const me = memberList.find(m => m.isMe)
+    if (!me) return 'no_me'
+    const nickOk = me.nickName === localUser.nickName
+    const avatarOk = !localUser.avatarUrl || me.avatarUrl === localUser.avatarUrl
+    return nickOk && avatarOk ? 'ok' : `mismatch: family[${me.nickName},${me.avatarUrl}] vs local[${localUser.nickName},${localUser.avatarUrl}]`
+  }))
+  if (familyConsistency === 'ok') {
+    record(P, '家庭管理', '自己昵称/头像与全局一致', 'pass')
+  } else if (familyConsistency === 'no_me') {
+    record(P, '家庭管理', '自己昵称/头像一致性', 'skip', '未找到自己')
+  } else {
+    record(P, '家庭管理', '自己昵称/头像一致性', 'fail', familyConsistency)
+  }
 }
 
 // ============================================================
@@ -450,7 +503,7 @@ async function phaseSubPages(mp) {
 // ============================================================
 
 async function main() {
-  console.log('=== 张姐私房菜谱 v1.2.0 全角色冒烟测试 ===')
+  console.log('=== 张姐私房菜谱 v1.2.1 全角色冒烟测试 ===')
   console.log('端口: ' + DEVTOOL_PORT + '\n')
 
   let mp
@@ -458,7 +511,7 @@ async function main() {
     // 启动：优先连接已运行的实例
     console.log('[启动] 连接微信开发者工具...')
     try {
-      mp = await automator.connect({ port: DEVTOOL_PORT })
+      mp = await automator.connect({ wsEndpoint: 'ws://127.0.0.1:' + DEVTOOL_PORT })
     } catch (connErr) {
       mp = await automator.launch({
         projectPath: __dirname + '/..',

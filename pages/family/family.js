@@ -80,12 +80,23 @@ Page({
   // 已加入家庭：加载成员列表和家庭详情
   loadMembersAndFamily(familyId) {
     callFunction('family-update', { action: 'get_members' }).then(members => {
+      const app = getApp()
+      const myOpenid = app.globalData.openid
+      const localUser = app.globalData.userInfo || {}
       const memberList = (members || []).map(m => {
         const mapped = mapUser(m) || {}
+        const isMe = mapped.openid === myOpenid
+        // 对于自己，优先使用本地缓存的昵称和头像（与「我的」页面保持一致）
+        if (isMe && localUser.nickName) {
+          mapped.nickName = localUser.nickName
+        }
+        if (isMe && localUser.avatarUrl) {
+          mapped.avatarUrl = localUser.avatarUrl
+        }
         return {
           ...mapped,
           roleText: getRoleName(mapped.role),
-          isMe: mapped.openid === getApp().globalData.openid
+          isMe
         }
       })
       this.setData({ memberList })

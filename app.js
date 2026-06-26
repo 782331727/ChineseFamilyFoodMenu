@@ -14,13 +14,18 @@ App({
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
       return
     }
+
+    // 同步初始化云环境（wx.cloud.init 仅存储配置，不触发网络调用，安全同步执行）
+    // 必须在 onLaunch 同步完成，确保后续页面的 onLoad/onShow 中 callFunction 可用
     wx.cloud.init({
       env: 'cloud1-d3gokqfm4ec276426',
       traceUser: true
     })
 
-    // 检查登录状态
-    this.checkLoginStatus()
+    // 登录检查延后到 nextTick，避免阻塞首屏渲染
+    wx.nextTick(() => {
+      this.checkLoginStatus()
+    })
   },
 
   // 检查登录状态
@@ -44,14 +49,15 @@ App({
     }
   },
 
-  // 跳转到登录页
+  // 跳转到登录页（使用 nextTick 延迟，确保 app 启动完成后再导航，避免 "non-empty page stack"）
   redirectToLogin() {
-    const pages = getCurrentPages()
-    // 避免重复跳转（如果当前已在登录页则忽略）
-    if (pages.length > 0 && pages[pages.length - 1].route === 'pages/login/login') {
-      return
-    }
-    wx.reLaunch({ url: '/pages/login/login' })
+    wx.nextTick(() => {
+      const pages = getCurrentPages()
+      if (pages.length > 0 && pages[pages.length - 1].route === 'pages/login/login') {
+        return
+      }
+      wx.reLaunch({ url: '/pages/login/login' })
+    })
   },
 
   // 自动登录（返回 Promise<boolean>，true 表示登录成功）

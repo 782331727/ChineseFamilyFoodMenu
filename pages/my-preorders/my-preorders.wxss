@@ -112,6 +112,22 @@
   color: #E74C3C;
 }
 
+/* 历史记录标签 */
+.historical-tag {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+.historical-text {
+  font-size: 22rpx;
+  color: #CCCCCC;
+  background: #F5F5F5;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+}
+
 /* 加载更多 */
 .load-more-wrap {
   display: flex;

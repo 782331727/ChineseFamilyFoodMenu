@@ -1,5 +1,39 @@
 // utils/api.js — 云函数调用封装
 
+/** 确保云环境已初始化（幂等，防御页面早于 app.onLaunch 调用 cloud API） */
+let _cloudReady = false
+
+function ensureCloudReady() {
+  if (_cloudReady) return Promise.resolve()
+  return new Promise((resolve) => {
+    if (!wx.cloud) {
+      console.error('请使用 2.2.3 或以上的基础库以使用云能力')
+      resolve() // 不阻塞，让后续调用报出原错误
+      return
+    }
+    try {
+      // 幂等：app.js 已调用过 init，这里重复调用无害
+      wx.cloud.init({
+        env: 'cloud1-d3gokqfm4ec276426',
+        traceUser: true
+      })
+      _cloudReady = true
+    } catch (_) {
+      // 极少数环境下 init 可能同步抛异常，稍后重试一次
+      setTimeout(() => {
+        try {
+          wx.cloud.init({
+            env: 'cloud1-d3gokqfm4ec276426',
+            traceUser: true
+          })
+        } catch (__) { /* 放弃，让后续调用暴露真实错误 */ }
+        _cloudReady = true
+      }, 100)
+    }
+    resolve()
+  })
+}
+
 /**
  * 统一调用云函数
  * @param {string} name 云函数名
@@ -7,7 +41,7 @@
  * @returns {Promise<object>}
  */
 function callFunction(name, data = {}) {
-  return new Promise((resolve, reject) => {
+  return ensureCloudReady().then(() => new Promise((resolve, reject) => {
     wx.cloud.callFunction({
       name,
       data,
@@ -38,7 +72,7 @@ function callFunction(name, data = {}) {
         reject(err)
       }
     })
-  })
+  }))
 }
 
 /**

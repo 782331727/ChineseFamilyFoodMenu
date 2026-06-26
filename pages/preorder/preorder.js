@@ -68,13 +68,36 @@ Page({
     const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
     this.setData({ hasFamily: hf })
     if (!hf) return
-    // 短期缓存：5秒内跳过刷新
+
+    const app = getApp()
+
+    // 处理从“我的预订单”跳转过来的编辑请求（tabBar 页无法 navigateTo 传参）
+    // 必须在缓存检查之前执行，确保每次 onShow 都处理
+    const editCtx = app.globalData.preorderEdit
+    if (editCtx) {
+      app.globalData.preorderEdit = null
+      const mealFront = mealToFront(editCtx.meal) || 'noon'
+      this.setData({
+        editMode: true,
+        editPreorderId: editCtx.preorderId || '',
+        editForUser: editCtx.forUser || '',
+        selectedDate: editCtx.date || this.data.selectedDate,
+        selectedMeal: mealFront,
+        remark: editCtx.note || ''
+      })
+      if (editCtx.dishId) {
+        this._pendingDishId = editCtx.dishId
+      }
+    }
+
+    // 短期缓存：5秒内跳过刷新（编辑请求已处理，可跳过列表刷新）
     const now = Date.now()
     if (this._lastFetch && now - this._lastFetch < 5000) return
     this._lastFetch = now
     // 刷新菜品列表（确保删除、新增的菜品能及时反映）
     this.loadDishes()
-    const app = getApp()
+
+    // 处理从菜品详情页跳转过来的预选菜品
     const dishId = app.globalData.preorderDishId
     if (dishId) {
       const trySelect = () => {

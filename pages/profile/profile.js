@@ -209,5 +209,5 @@ Page({
   goPreorderList() { wx.navigateTo({ url: '/pages/preorder-list/preorder-list' }) },
   goMyPreorders() { wx.navigateTo({ url: '/pages/my-preorders/my-preorders' }) },
   goPrivacy() { wx.navigateTo({ url: '/pages/privacy/privacy' }) },
-  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.0\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) }
+  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.1\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) }
 })

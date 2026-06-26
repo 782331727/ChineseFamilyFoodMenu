@@ -1,5 +1,5 @@
 /**
- * 云函数回归测试 v1.2.0
+ * 云函数回归测试 v1.2.1
  * 验证：图片 URL 转换 (maxAge/HTTPS)、dish-public 公开查询
  * 运行：node tests/cloud-regression.js
  */
@@ -70,7 +70,7 @@ const LOGIN_REQUIRED_TESTS = [
 ]
 
 async function main() {
-  console.log('=== 云函数回归测试 v1.2.0 ===')
+  console.log('=== 云函数回归测试 v1.2.1 ===')
   console.log(`时间: ${new Date().toISOString()}`)
   console.log(`注: MCP invoke 无微信 OPENID，部分云函数仅验证不崩\n`)
 

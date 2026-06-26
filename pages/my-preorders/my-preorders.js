@@ -1,7 +1,7 @@
 // pages/my-preorders/my-preorders.js
 // 我的预购列表：默认显示未来+最近3天历史，下拉加载更早的
 const { callFunction } = require('../../utils/api')
-const { formatDateWithWeek } = require('../../utils/date')
+const { formatDateWithWeek, getTodayStr } = require('../../utils/date')
 
 Page({
   data: {
@@ -12,7 +12,8 @@ Page({
     loadingMore: false,
     historyDays: 3,           // 当前已加载的历史天数
     hasMore: false,            // 是否还有更早的预购记录
-    totalAll: 0
+    totalAll: 0,
+    today: getTodayStr()      // 今天日期，用于判断历史/未来
   },
 
   onLoad() {
@@ -103,11 +104,18 @@ Page({
     })
   },
 
-  // 编辑预购：跳转到预购页面，携带已有信息
+  // 编辑预购：通过 globalData 传参 + switchTab 跳转到预定 tab（tabBar 页不能 navigateTo）
   onEditPreorder(e) {
+    const app = getApp()
     const { id, dishId, date, note, meal } = e.currentTarget.dataset
-    wx.navigateTo({
-      url: `/pages/preorder/preorder?editMode=true&preorderId=${id}&dishId=${dishId}&date=${date}&meal=${meal || 'lunch'}&note=${encodeURIComponent(note || '')}`
-    })
+    app.globalData.preorderEdit = {
+      preorderId: id,
+      dishId,
+      date,
+      meal: meal || 'lunch',
+      note: note || '',
+      forUser: ''
+    }
+    wx.switchTab({ url: '/pages/preorder/preorder' })
   }
 })

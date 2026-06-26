@@ -3,6 +3,5 @@
     "dish-card": "/components/dish-card/dish-card",
     "empty-state": "/components/empty-state/empty-state"
   },
-  "enablePullDownRefresh": true,
   "navigationBarTitleText": "张姐的私房菜谱"
 }

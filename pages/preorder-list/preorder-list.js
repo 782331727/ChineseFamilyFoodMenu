@@ -131,13 +131,20 @@ Page({
     })
   },
 
-  // 管理员编辑某个预购
+  // 管理员编辑某个预购（tabBar 页不能 navigateTo，通过 globalData 传参）
   onEditPreorder(e) {
+    const app = getApp()
     const { preorderId, dishId, memberOpenid, note } = e.currentTarget.dataset
     const date = this.data.selectedDate
-    wx.navigateTo({
-      url: `/pages/preorder/preorder?editMode=true&preorderId=${preorderId}&dishId=${dishId}&date=${date}&note=${encodeURIComponent(note || '')}&forUser=${memberOpenid}`
-    })
+    app.globalData.preorderEdit = {
+      preorderId,
+      dishId,
+      date,
+      meal: 'lunch',
+      note: note || '',
+      forUser: memberOpenid
+    }
+    wx.switchTab({ url: '/pages/preorder/preorder' })
   },
 
   remindMember(e) {

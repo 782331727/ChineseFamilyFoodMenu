@@ -59,11 +59,19 @@
     "ignore": [
       {
         "type": "folder",
+        "value": "node_modules"
+      },
+      {
+        "type": "folder",
         "value": ".cursor"
       },
       {
         "type": "folder",
         "value": ".vscode"
+      },
+      {
+        "type": "folder",
+        "value": ".test-tmp"
       },
       {
         "type": "folder",
@@ -88,6 +96,26 @@
       {
         "type": "file",
         "value": "package.json"
+      },
+      {
+        "type": "file",
+        "value": "package-lock.json"
+      },
+      {
+        "type": "file",
+        "value": "preview-qr.png"
+      },
+      {
+        "type": "file",
+        "value": "MEMORY.md"
+      },
+      {
+        "type": "file",
+        "value": "AGENTS.md"
+      },
+      {
+        "type": "file",
+        "value": "nul"
       }
     ],
     "include": []

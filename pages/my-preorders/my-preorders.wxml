@@ -25,13 +25,18 @@
               <text class="item-date">{{item.target_date}}</text>
             </view>
           </view>
-          <view class="item-actions">
+          <!-- 今天及未来：可编辑/取消 -->
+          <view class="item-actions" wx:if="{{item.target_date >= today}}">
             <view class="action-btn edit-btn" bind:tap="onEditPreorder" data-id="{{item._id}}" data-dish-id="{{item.dish_id}}" data-date="{{item.target_date}}" data-note="{{item.note}}" data-meal="{{item.meal_type}}">
               <text>编辑</text>
             </view>
             <view class="action-btn cancel-btn" bind:tap="onCancelPreorder" data-id="{{item._id}}" data-name="{{item.dish_name}}">
               <text>取消</text>
             </view>
+          </view>
+          <!-- 历史预购：不可编辑/取消 -->
+          <view class="item-actions historical-tag" wx:else>
+            <text class="historical-text">历史记录</text>
           </view>
         </view>
       </view>
