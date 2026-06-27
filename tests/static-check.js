@@ -1,5 +1,5 @@
 /**
- * 静态回归检查 v1.2.2
+ * 静态回归检查 v1.2.3
  * 不依赖微信开发者工具，验证关键代码逻辑变更
  * 运行：node tests/static-check.js
  */
@@ -118,7 +118,7 @@ function checkAppLaunch() {
   check('app.js redirectToLogin 使用 wx.nextTick 延迟',
     appJS.includes('wx.nextTick'),
     '避免 onLaunch 中的 wx.reLaunch 竞态')
-  // v1.2.2: cloud.init 移出 nextTick 同步执行，避免页面 onShow 早于 init 导致 "Cloud API isn't enabled"
+  // v1.2.3: cloud.init 移出 nextTick 同步执行，避免页面 onShow 早于 init 导致 "Cloud API isn't enabled"
   check('app.js wx.cloud.init 在 nextTick 之前同步调用',
     appJS.indexOf('cloud.init') < appJS.indexOf('nextTick'),
     '确保页面 onShow 时云环境已就绪')
@@ -135,7 +135,7 @@ function checkAppLaunch() {
     !homeJSON.includes('enablePullDownRefresh'),
     '已在 app.json window 级别配置')
 
-  // v1.2.2: utils/api.js 云环境就绪守卫，防御页面早于 app.onLaunch
+  // v1.2.3: utils/api.js 云环境就绪守卫，防御页面早于 app.onLaunch
   const apiJS = read('utils/api.js')
   check('utils/api.js 有 ensureCloudReady 守卫',
     apiJS.includes('ensureCloudReady'),
@@ -154,11 +154,11 @@ function checkVersion() {
   const profileJS = read('pages/profile/profile.js')
   const readmeMD = read('README.md')
   
-  check('profile.js showAbout 显示 v1.2.2',
-    profileJS.includes('v1.2.2'),
+  check('profile.js showAbout 显示 v1.2.3',
+    profileJS.includes('v1.2.3'),
     '关于对话框版本号')
-  check('README.md 有 v1.2.2 更新日志',
-    readmeMD.includes('v1.2.2'),
+  check('README.md 有 v1.2.3 更新日志',
+    readmeMD.includes('v1.2.3'),
     '文档已更新')
 }
 
@@ -525,6 +525,21 @@ function checkRoleCoverage() {
     read('cloudfunctions/dish-detail/index.js').includes('image_urls_raw') && read('cloudfunctions/dish-detail/index.js').includes('image_urls_raw: imageUrlsRaw'),
     '公开菜编辑不丢图')
 
+  // 退出登录 / 宾客模式守卫
+  const authJS = read('utils/auth.js')
+  check('family.js loadFamilyInfo 有 _loggedOut 守卫',
+    read('pages/family/family.js').includes('_loggedOut'),
+    '退出后访问家庭页不自动恢复登录')
+  check('admin.js onLoad 有 isLogin 守卫',
+    read('pages/admin/admin.js').includes('_loggedOut'),
+    '宾客无法进入超管后台')
+  check('profile.js onShow 宾客不调接口',
+    read('pages/profile/profile.js').includes('!getApp().globalData.isLogin'),
+    '宾客模式不加载云端数据')
+  check('auth.js refreshRole 检查 isLogin+_loggedOut',
+    authJS.includes('!app.globalData.isLogin') && authJS.includes('_loggedOut'),
+    'refreshRole 双重守卫')
+
   // 智能安检（指纹+skip_check）
   check('dish-add.js 有 formFingerprint 方法',
     dishAddJS.includes('formFingerprint'),
@@ -574,7 +589,7 @@ function checkTestScripts() {
   const role = read('tests/role-test.js')
   const cloud = read('tests/cloud-regression.js')
   
-  check('smoke-test.js 版本 v1.2.2', smoke.includes('v1.2.2'))
+  check('smoke-test.js 版本 v1.2.3', smoke.includes('v1.2.3'))
   check('smoke-test.js 使用 wsEndpoint 连接', smoke.includes('wsEndpoint'))
   check('smoke-test.js 有 today 检查', smoke.includes('typeof this.data.today'))
   check('smoke-test.js 有家庭头像/昵称一致性检查', smoke.includes('familyConsistency'))
@@ -583,7 +598,7 @@ function checkTestScripts() {
   check('role-test.js 有 today 检查', role.includes('typeof this.data.today'))
   check('role-test.js 使用 wsEndpoint 连接', role.includes('wsEndpoint'))
   
-  check('cloud-regression.js 版本 v1.2.2', cloud.includes('v1.2.2'))
+  check('cloud-regression.js 版本 v1.2.3', cloud.includes('v1.2.3'))
 }
 
 // ============================================================
@@ -640,7 +655,7 @@ function read(relativePath) {
 // 主流程
 // ============================================================
 function main() {
-  console.log('=== 张姐私房菜谱 v1.2.2 静态回归检查 ===\n')
+  console.log('=== 张姐私房菜谱 v1.2.3 静态回归检查 ===\n')
   
   checkEditFix()
   checkHistoricalLock()

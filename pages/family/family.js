@@ -1,5 +1,5 @@
 // pages/family/family.js
-const { callFunction, getDB } = require('../../utils/api')
+const { callFunction } = require('../../utils/api')
 const { hasRoleLevel, getRoleName } = require('../../utils/auth')
 const { mapUser, mapFamily } = require('../../utils/mapper')
 
@@ -35,10 +35,15 @@ Page({
   },
 
   // 判断当前用户是否已加入家庭
-  // 优先用 globalData.familyId，没有则调用 login 云函数确认
   loadFamilyInfo() {
     const app = getApp()
     const familyId = app.globalData.familyId
+
+    // 宾客或已退出：不调云端，保持游客态
+    if (!app.globalData.isLogin || wx.getStorageSync('_loggedOut')) {
+      this.setData({ hasFamily: false })
+      return
+    }
 
     if (familyId) {
       this.setData({ hasFamily: true, canManage: hasRoleLevel('admin'), isAdmin: hasRoleLevel('admin') })
@@ -46,7 +51,7 @@ Page({
       return
     }
 
-    // 没有缓存的家庭ID，重新登录确认
+    // 已登录但缺缓存的家庭ID，从云端恢复
     wx.cloud.callFunction({
       name: 'login',
       success: res => {
@@ -54,15 +59,13 @@ Page({
         if (result && result.code === 0 && result.data && result.data.user) {
           const user = result.data.user
           const fid = user.family_id || ''
-          // 更新全局状态
           app.globalData.familyId = fid
           app.globalData.role = user.role || 'eater'
-          app.globalData.isLogin = true
           wx.setStorageSync('familyId', fid)
           wx.setStorageSync('role', user.role || 'eater')
 
-      if (fid) {
-        this.setData({ hasFamily: true, canManage: hasRoleLevel('admin'), isAdmin: hasRoleLevel('admin') })
+          if (fid) {
+            this.setData({ hasFamily: true, canManage: hasRoleLevel('admin'), isAdmin: hasRoleLevel('admin') })
             this.loadMembersAndFamily(fid)
           } else {
             this.setData({ hasFamily: false })
@@ -79,7 +82,9 @@ Page({
 
   // 已加入家庭：加载成员列表和家庭详情
   loadMembersAndFamily(familyId) {
-    callFunction('family-update', { action: 'get_members' }).then(members => {
+    callFunction('family-update', { action: 'get_members' }).then(data => {
+      const members = (data && data.members) || data || []
+      const familyData = (data && data.family) || null
       const app = getApp()
       const myOpenid = app.globalData.openid
       const localUser = app.globalData.userInfo || {}
@@ -100,27 +105,17 @@ Page({
         }
       })
       this.setData({ memberList })
-    }).catch(() => {
-      this.setData({ memberList: [] })
-    })
 
-    // 查家庭详情（invite_code 等）
-    // 优先用缓存，DB 直接查可能因集合权限被拒（非 admin 成员）
-    const app = getApp()
-    const cachedInfo = app.globalData.familyInfo || wx.getStorageSync('familyInfo')
-    if (cachedInfo && cachedInfo._id) {
-      this.setData({ familyInfo: cachedInfo })
-      return
-    }
-    // 缓存没有才查 DB
-    getDB().collection('families').doc(familyId).get().then(res => {
-      if (res.data) {
-        const info = mapFamily(res.data) || {}
+      // 家庭信息（含 invite_code）从云函数直接获取
+      if (familyData) {
+        const info = mapFamily(familyData) || {}
         app.globalData.familyInfo = info
         wx.setStorageSync('familyInfo', info)
         this.setData({ familyInfo: info })
       }
-    }).catch(() => {})
+    }).catch(() => {
+      this.setData({ memberList: [] })
+    })
   },
 
   // === 创建/加入家庭 表单交互 ===

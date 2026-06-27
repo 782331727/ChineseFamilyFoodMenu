@@ -105,8 +105,12 @@ exports.main = async (event, context) => {
       }
 
       case 'get_members': {
-        // 获取家庭成员列表
-        const membersRes = await db.collection('users').where({ family_id: familyId }).get()
+        // 获取家庭成员列表 + 家庭信息
+        const [membersRes, familyRes] = await Promise.all([
+          db.collection('users').where({ family_id: familyId }).get(),
+          db.collection('families').doc(familyId).get()
+        ])
+        const family = familyRes.data || {}
         // 生成临时头像链接
         const avatarIDs = []
         membersRes.data.forEach(m => {
@@ -134,7 +138,7 @@ exports.main = async (event, context) => {
         return {
           code: 0,
           message: 'ok',
-          data: membersRes.data
+          data: { members: membersRes.data, family }
         }
       }
 

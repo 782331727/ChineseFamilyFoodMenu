@@ -28,8 +28,9 @@ App({
     })
   },
 
-  // 检查登录状态
+  // 检查登录状态（仅从缓存恢复，首次启动默认游客模式）
   checkLoginStatus() {
+    if (wx.getStorageSync('_loggedOut')) return
     const userInfo = wx.getStorageSync('userInfo')
     const openid = wx.getStorageSync('openid')
     if (userInfo && openid) {
@@ -39,14 +40,8 @@ App({
       this.globalData.role = wx.getStorageSync('role') || 'eater'
       this.globalData.familyId = wx.getStorageSync('familyId') || ''
       this.globalData.familyInfo = wx.getStorageSync('familyInfo') || null
-    } else {
-      this.autoLogin().then(success => {
-        if (!success) {
-          // 自动登录也失败，跳转到登录页
-          this.redirectToLogin()
-        }
-      })
     }
+    // 首次启动无缓存 → 保持游客模式，不自动登录
   },
 
   // 跳转到登录页（使用 nextTick 延迟，确保 app 启动完成后再导航，避免 "non-empty page stack"）
@@ -95,6 +90,7 @@ App({
           this.globalData.familyInfo = family || null
           this.globalData.isLogin = true
 
+          wx.removeStorageSync('_loggedOut')
           wx.setStorageSync('openid', user.openid)
           wx.setStorageSync('userInfo', userInfo)
           wx.setStorageSync('role', role)

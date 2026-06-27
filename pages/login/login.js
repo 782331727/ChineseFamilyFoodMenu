@@ -37,18 +37,17 @@ Page({
     const info = { nickName: wxUser.nickName, avatarUrl: wxUser.avatarUrl }
     const app = getApp()
 
-    // 更新本地数据
     app.globalData.userInfo = info
     app.globalData.isLogin = true
+    wx.removeStorageSync('_loggedOut')
     wx.setStorageSync('userInfo', info)
 
     this.setData({ userInfo: info, isLogin: true })
 
-    // 调用 login 云函数
-    const loginData = { nickname: info.nickName }
-    if (wxUser.avatarUrl && wxUser.avatarUrl.startsWith('https://')) {
-      loginData.avatar = wxUser.avatarUrl
-    }
+    // 仅传入有意义的昵称/头像，不覆盖云端已有自定义值
+    const loginData = {}
+    if (info.nickName && info.nickName !== '微信用户') loginData.nickname = info.nickName
+    if (info.avatarUrl && info.avatarUrl.startsWith('cloud://')) loginData.avatar = info.avatarUrl
 
     callFunction('login', loginData).then(res => {
       this.setData({ loading: false })
@@ -62,6 +61,12 @@ Page({
         if (res.family) {
           app.globalData.familyInfo = res.family
           wx.setStorageSync('familyInfo', res.family)
+        }
+        // 云端已有自定义昵称/头像 → 优先生效
+        if (res.user.nickname && res.user.nickname !== '微信用户') {
+          const restored = { nickName: res.user.nickname, avatarUrl: res.user.avatar || info.avatarUrl }
+          app.globalData.userInfo = restored
+          wx.setStorageSync('userInfo', restored)
         }
       }
       wx.showToast({ title: '登录成功', icon: 'success', duration: 800 })

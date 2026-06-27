@@ -23,6 +23,8 @@ Page({
     const app = getApp()
     const hasFamily = !!(app.globalData.familyId || wx.getStorageSync('familyId'))
     this.setData({ hasFamily, canManageDishes: hasPermission('manage_dishes') })
+    // 每次切回首页刷新问候语（昵称可能在登录后变了）
+    this.initGreeting()
     // 短期缓存：8秒内切回来跳过数据加载
     const now = Date.now()
     const cacheOk = this._lastFetch && (now - this._lastFetch < 8000)

@@ -89,8 +89,10 @@ let _refreshPromise = null
  * @returns {Promise<string>} 返回最新角色
  */
 function refreshRole() {
-  if (_refreshPromise) return _refreshPromise
+  // 宾客模式或已主动退出：不自动恢复登录态
   const app = getApp()
+  if (!app.globalData.isLogin || wx.getStorageSync('_loggedOut')) return Promise.resolve(getCurrentRole())
+  if (_refreshPromise) return _refreshPromise
   _refreshPromise = callFunction('profile-manage', { action: 'get_profile' }).then(data => {
     if (!data) return getCurrentRole()
     const newRole = data.role || 'eater'

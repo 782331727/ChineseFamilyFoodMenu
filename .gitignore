@@ -8,3 +8,4 @@ nul
 config/
 .unused/
 cloudfunctions/*/node_modules/
+.test-tmp/

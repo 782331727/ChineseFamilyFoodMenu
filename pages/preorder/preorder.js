@@ -177,6 +177,7 @@ Page({
   onRemarkInput(e) { this.setData({ remark: e.detail.value }) },
 
   submitPreorder() {
+    if (!this.data.hasFamily) { wx.showToast({ title: '请先加入家庭', icon: 'none' }); return }
     if (this.data.selectedCount === 0) { wx.showToast({ title: '请至少选择一道菜', icon: 'none' }); return }
 
     // 编辑模式：修改已有预定
@@ -205,7 +206,15 @@ Page({
       callFunction('preorder-add', updateData).then(() => {
         wx.hideLoading()
         wx.showToast({ title: '修改成功', icon: 'success' })
-        setTimeout(() => { wx.navigateBack() }, 1200)
+        // tabBar 页不能用 navigateBack；检查栈深度决定去向
+        const pages = getCurrentPages()
+        if (pages.length > 1) {
+          setTimeout(() => wx.navigateBack(), 1200)
+        } else {
+          // 编辑模式下关闭编辑态，刷新数据
+          this.setData({ editMode: false, editPreorderId: '', editForUser: '' })
+          this.loadDishes()
+        }
       }).catch(() => {
         wx.hideLoading()
       })

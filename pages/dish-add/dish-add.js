@@ -53,6 +53,13 @@ Page({
   },
 
   onLoad(options) {
+    // 宾客/未登录无法使用添加菜品和 AI 生成
+    const app = getApp()
+    if (!app.globalData.isLogin || !(app.globalData.familyId || wx.getStorageSync('familyId'))) {
+      wx.showToast({ title: '请先登录并加入家庭', icon: 'none', duration: 2000 })
+      setTimeout(() => wx.switchTab({ url: '/pages/home/home' }), 1500)
+      return
+    }
     if (options.tab === 'ai') {
       this.setData({ currentTab: 'ai' })
     }

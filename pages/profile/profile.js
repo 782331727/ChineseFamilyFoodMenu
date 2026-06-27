@@ -14,12 +14,16 @@ Page({
     stats: { dishCount: 0, cookCount: 0, preorderCount: 0 },
     // 昵称编辑
     showNickModal: false,
-    editNick: ''
+    editNick: '',
+    // 宾客登录表单
+    loginForm: { nickName: '', avatarUrl: '' }
   },
 
   onLoad() { this.initUserInfo() },
   onShow() {
     refreshRole().then(() => this.initUserInfo())
+    // 宾客模式不加载云端数据
+    if (!getApp().globalData.isLogin) return
     // 短期缓存：15秒内跳过
     const now = Date.now()
     if (this._lastFetch && now - this._lastFetch < 15000) return
@@ -43,62 +47,79 @@ Page({
     })
   },
 
-  // 微信一键登录：通过 button open-type="getUserInfo" 触发
-  onGetUserInfo(e) {
-    const wxUser = e.detail && e.detail.userInfo
-    if (!wxUser) {
-      // 用户拒绝授权，回退到 wx.getUserProfile（如果可用）
-      this.handleLogin()
-      return
-    }
-    this.saveUserInfoAndLogin(wxUser)
+  // === 宾客登录（新版：chooseAvatar + type="nickname"） ===
+  onChooseAvatar(e) {
+    this.setData({ 'loginForm.avatarUrl': e.detail.avatarUrl })
+  },
+  onLoginNickInput(e) {
+    this.setData({ 'loginForm.nickName': e.detail.value })
+  },
+  onLoginNickBlur(e) {
+    // 微信昵称输入框 blur 时可能带 nickname 值
+    if (e.detail.value) this.setData({ 'loginForm.nickName': e.detail.value })
   },
 
-  // 登录回退（wx.getUserProfile 在基础库 2.27+ 已回收，直接使用默认值）
-  handleLogin() {
-    this.saveUserInfoAndLogin({ nickName: '微信用户', avatarUrl: '' })
+  doGuestLogin() {
+    const { nickName, avatarUrl } = this.data.loginForm
+    const actualNick = (nickName || '').trim()
+
+    // 头像需要先上传到云存储（chooseAvatar 返回的是临时 URL）
+    if (avatarUrl && !avatarUrl.startsWith('cloud://')) {
+      wx.showLoading({ title: '上传头像...', mask: true })
+      uploadImage(avatarUrl, 'avatars').then(cloudFileID => {
+        wx.hideLoading()
+        this.saveUserInfoAndLogin({ nickName: actualNick, avatarUrl: cloudFileID })
+      }).catch(() => {
+        wx.hideLoading()
+        this.saveUserInfoAndLogin({ nickName: actualNick, avatarUrl: '' })
+      })
+    } else {
+      this.saveUserInfoAndLogin({ nickName: actualNick, avatarUrl: avatarUrl || '' })
+    }
   },
 
   saveUserInfoAndLogin(wxUser) {
     const info = { nickName: wxUser.nickName, avatarUrl: wxUser.avatarUrl }
-    this.setData({ userInfo: info, isLogin: true })
+    this.setData({ userInfo: info, isLogin: true, loginForm: { nickName: '', avatarUrl: '' } })
 
-    // 更新全局与缓存
     const app = getApp()
     app.globalData.userInfo = info
     app.globalData.isLogin = true
+    wx.removeStorageSync('_loggedOut')
     wx.setStorageSync('userInfo', info)
 
-    // 上传头像到云存储（如果有头像）
-    if (wxUser.avatarUrl && wxUser.avatarUrl.startsWith('https://')) {
-      let loginData = { nickname: info.nickName, avatar: info.avatarUrl }
-      callFunction('login', loginData).then(res => {
-        if (res && res.user) {
-          app.globalData.openid = res.user.openid || app.globalData.openid
-          app.globalData.role = res.user.role || 'eater'
-          app.globalData.familyId = res.user.family_id || ''
-          wx.setStorageSync('openid', app.globalData.openid)
-          wx.setStorageSync('role', app.globalData.role)
-          wx.setStorageSync('familyId', app.globalData.familyId)
-        }
-        wx.showToast({ title: '登录成功', icon: 'success' })
-        this.loadProfile()
-        this.loadStats()
-      }).catch(() => {})
-    } else {
-      // 纯文本昵称，直接更新
-      callFunction('login', { nickname: info.nickName }).then(res => {
-        if (res && res.user) {
-          app.globalData.openid = res.user.openid || app.globalData.openid
-          app.globalData.role = res.user.role || 'eater'
-          wx.setStorageSync('openid', app.globalData.openid)
-          wx.setStorageSync('role', app.globalData.role)
-        }
-        wx.showToast({ title: '登录成功', icon: 'success' })
-        this.loadProfile()
-        this.loadStats()
-      }).catch(() => {})
+    // 仅当用户明确输入了昵称（非空且非默认）才传给云端更新
+    const loginData = {}
+    if (info.nickName && info.nickName !== '微信用户') {
+      loginData.nickname = info.nickName
     }
+    // 仅当头像已是 cloud:// 格式（已上传云存储）才传入
+    if (info.avatarUrl && info.avatarUrl.startsWith('cloud://')) {
+      loginData.avatar = info.avatarUrl
+    }
+
+    callFunction('login', loginData).then(res => {
+      if (res && res.user) {
+        app.globalData.openid = res.user.openid || app.globalData.openid
+        app.globalData.role = res.user.role || 'eater'
+        app.globalData.familyId = res.user.family_id || ''
+        wx.setStorageSync('openid', app.globalData.openid)
+        wx.setStorageSync('role', app.globalData.role)
+        wx.setStorageSync('familyId', app.globalData.familyId)
+        // 云端是权威数据源，始终从云端恢复
+        const cloudNick = res.user.nickname && res.user.nickname !== '微信用户'
+          ? res.user.nickname
+          : info.nickName
+        const cloudAvatar = res.user.avatar || info.avatarUrl
+        const restored = { nickName: cloudNick, avatarUrl: cloudAvatar }
+        this.setData({ userInfo: restored })
+        app.globalData.userInfo = restored
+        wx.setStorageSync('userInfo', restored)
+      }
+      wx.showToast({ title: '登录成功', icon: 'success' })
+      this.loadProfile()
+      this.loadStats()
+    }).catch(() => {})
   },
 
   // === 编辑昵称 ===
@@ -197,6 +218,31 @@ Page({
   goPreorderList() { wx.navigateTo({ url: '/pages/preorder-list/preorder-list' }) },
   goMyPreorders() { wx.navigateTo({ url: '/pages/my-preorders/my-preorders' }) },
   goPrivacy() { wx.navigateTo({ url: '/pages/privacy/privacy' }) },
-  goAdmin() { wx.navigateTo({ url: '/pages/admin/admin' }) },
-  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.2\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) }
+  goAdmin() {
+    const app = getApp()
+    if (!app.globalData.isLogin || wx.getStorageSync('_loggedOut')) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    wx.navigateTo({ url: '/pages/admin/admin' })
+  },
+  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.3\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) },
+
+  logout() {
+    wx.showModal({
+      title: '退出登录',
+      content: '退出后将进入游客模式，可重新登录恢复数据。',
+      success: res => {
+        if (!res.confirm) return
+        const app = getApp()
+        wx.setStorageSync('_loggedOut', true)
+        ;['openid','role','userInfo','familyId','familyInfo'].forEach(k => {
+          app.globalData[k] = k === 'role' ? 'eater' : null
+          wx.removeStorageSync(k)
+        })
+        app.globalData.isLogin = false
+        wx.reLaunch({ url: '/pages/home/home' })
+      }
+    })
+  }
 })

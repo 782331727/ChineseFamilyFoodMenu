@@ -28,11 +28,11 @@ exports.main = async (event, context) => {
 
     let user
     if (userRes.data.length > 0) {
-      // 用户已存在，更新昵称和头像（如果有传入）
+      // 用户已存在：仅当传入有意义的昵称/头像时才更新，不覆盖已有自定义值
       user = userRes.data[0]
       const updateData = {}
-      if (nickname) updateData.nickname = nickname
-      if (avatar) updateData.avatar = avatar
+      if (nickname && nickname !== '微信用户') updateData.nickname = nickname
+      if (avatar && avatar.startsWith('cloud://')) updateData.avatar = avatar
       if (Object.keys(updateData).length > 0) {
         await db.collection('users').doc(user._id).update({ data: updateData })
         user = { ...user, ...updateData }

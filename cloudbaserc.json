@@ -5,6 +5,8 @@
     { "name": "content-admin", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
     { "name": "dish-detail", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
     { "name": "menu-manage", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
-    { "name": "shopping-list", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true }
+    { "name": "shopping-list", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "login", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "family-update", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true }
   ]
 }

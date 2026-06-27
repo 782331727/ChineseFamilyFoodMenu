@@ -35,6 +35,12 @@ Page({
   },
 
   onLoad() {
+    const app = getApp()
+    if (!app.globalData.isLogin || wx.getStorageSync('_loggedOut')) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      setTimeout(() => wx.switchTab({ url: '/pages/profile/profile' }), 1200)
+      return
+    }
     this.getMyOpenid()
     this.loadStats()
     this.loadDishes()

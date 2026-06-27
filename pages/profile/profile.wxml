@@ -2,22 +2,31 @@
 <view class="container">
   <!-- 用户信息 -->
   <view class="profile-header">
-    <view class="avatar-wrap" bind:tap="changeAvatar">
+    <button class="avatar-wrap avatar-btn" wx:if="{{!isLogin}}" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <image class="avatar-lg" src="{{loginForm.avatarUrl || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="avatar-edit-mask"><text>选头像</text></view>
+    </button>
+    <view class="avatar-wrap" wx:if="{{isLogin}}" bind:tap="changeAvatar">
       <image class="avatar-lg" src="{{userInfo.avatarUrl || '/assets/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="avatar-edit-mask"><text>换头像</text></view>
     </view>
     <view class="user-info">
-      <view class="name-row" bind:tap="editNickname">
+      <view class="name-row" bind:tap="editNickname" wx:if="{{isLogin}}">
         <text class="user-name">{{userInfo.nickName || '未登录'}}</text>
         <text class="edit-icon">✎</text>
       </view>
-      <view class="role-badge role-{{role}}">
+      <!-- 宾客：微信昵称输入 -->
+      <view class="name-row" wx:if="{{!isLogin}}">
+        <input class="nickname-input" type="nickname" placeholder="点击获取微信昵称" value="{{loginForm.nickName}}" bindinput="onLoginNickInput" bindblur="onLoginNickBlur"/>
+      </view>
+      <view class="role-badge role-{{role}}" wx:if="{{isLogin}}">
         <text>{{roleText}}</text>
       </view>
+      <text class="guest-hint" wx:if="{{!isLogin}}">点击头像和昵称设置</text>
     </view>
-    <!-- 微信一键登录按钮（游客态显示） -->
-    <button class="login-btn" wx:if="{{!isLogin}}" open-type="getUserInfo" bindgetuserinfo="onGetUserInfo">
-      <text>微信一键登录</text>
+    <!-- 宾客：登录按钮 -->
+    <button class="login-btn" wx:if="{{!isLogin}}" bind:tap="doGuestLogin">
+      <text>确认登录</text>
     </button>
   </view>
 
@@ -133,6 +142,12 @@
       <view class="menu-item" bind:tap="showAbout" bindlongpress="goAdmin">
         <text class="menu-icon">ℹ️</text>
         <text class="menu-text">关于</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-divider"></view>
+      <view class="menu-item" bind:tap="logout" wx:if="{{isLogin}}">
+        <text class="menu-icon">🚪</text>
+        <text class="menu-text">退出登录</text>
         <text class="menu-arrow">›</text>
       </view>
     </view>
