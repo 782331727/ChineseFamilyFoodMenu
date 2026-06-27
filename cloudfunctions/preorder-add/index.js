@@ -121,12 +121,25 @@ async function doAddPreorder(opts) {
     return { code: -1, message: '该成员已预订过这道菜了', data: null }
   }
 
-  if (note) {
-    try {
-      const secCheck = await cloud.openapi.security.msgSecCheck({ content: note })
-      if (secCheck.errCode !== 0) return { code: -1, message: '备注内容违规，请修改', data: null }
-    } catch (e) {}
-  }
+	  if (note) {
+	    try {
+	      // 内容安全检测 v2.0：必须传 openid + scene + version
+	      const secCheck = await cloud.openapi.security.msgSecCheck({
+	        openid: user.openid,   // 必填：用户 openid（近 2 小时需访问过小程序）
+	        scene: 2,              // 必填：场景值 2=评论/发布内容
+	        version: 2,            // 必填：固定 2 表示 2.0 接口
+	        content: note          // 必填：待检测文本
+	      })
+	      // 2.0 返回 result.suggest: pass(通过) / risky(违规) / review(人工审核)
+	      if (secCheck.result && secCheck.result.suggest !== 'pass') {
+	        return { code: -1, message: '备注内容违规，请修改', data: null }
+	      }
+	    } catch (e) {
+	      // openapi 调用异常时拒绝备注（fail-close），确保不合规内容不会绕过检查
+	      console.error('[preorder-add] msgSecCheck v2.0 调用失败，备注将被拒绝:', e.errCode, e.message || e.errMsg)
+	      return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+	    }
+	  }
 
   const preorderData = {
     family_id: familyId,
@@ -381,6 +394,20 @@ async function handleUpdateNote(OPENID, preorderId, note) {
     const preorder = preorderRes.data
     if (preorder.user_id !== user._id) {
       return { code: -1, message: '只能修改自己的预购', data: null }
+    }
+
+    if (note) {
+      try {
+        const secCheck = await cloud.openapi.security.msgSecCheck({
+          openid: OPENID, scene: 2, version: 2, content: note
+        })
+        if (secCheck.result && secCheck.result.suggest !== 'pass') {
+          return { code: -1, message: '备注内容违规，请修改', data: null }
+        }
+      } catch (e) {
+        console.error('[preorder-add] msgSecCheck update_note 失败:', e.errCode, e.message || e.errMsg)
+        return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+      }
     }
 
     await db.collection('preorders').doc(preorderId).update({

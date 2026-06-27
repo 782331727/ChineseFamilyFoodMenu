@@ -5,6 +5,20 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
+// 检查单个文本内容
+async function checkText(openid, content) {
+  if (!content) return { pass: true }
+  try {
+    const res = await cloud.openapi.security.msgSecCheck({
+      openid, scene: 2, version: 2, content
+    })
+    return { pass: res.result && res.result.suggest === 'pass' }
+  } catch (e) {
+    console.error('[shopping-list] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+    return { pass: false }
+  }
+}
+
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
   const {
@@ -27,15 +41,24 @@ exports.main = async (event, context) => {
 
     const familyId = user.family_id
 
-    // 权限检查：create/update_items/delete 需要 admin 或 cook
+    // 权限检查：create/update_items/delete/generate 需要 admin 或 cook
     // list/detail/toggle_item 对所有家庭成员开放
-    const writeActions = ['create', 'update_items', 'delete']
+    const writeActions = ['create', 'update_items', 'delete', 'generate']
     if (writeActions.includes(action) && user.role !== 'admin' && user.role !== 'cook') {
       return { code: -1, message: '权限不足，仅家长或大厨可管理采购清单', data: null }
     }
 
     switch (action) {
       case 'create': {
+        // 内容安全检查：逐项检测物品名称
+        if (items && Array.isArray(items)) {
+          for (const item of items) {
+            if (item.name) {
+              const ck = await checkText(OPENID, item.name)
+              if (!ck.pass) return { code: -1, message: '物品名称违规，请修改', data: null }
+            }
+          }
+        }
         // 创建采购清单
         const listData = {
           family_id: familyId,
@@ -77,6 +100,20 @@ exports.main = async (event, context) => {
         if (!list_id) {
           return { code: -1, message: '缺少清单ID', data: null }
         }
+        // 校验清单属于当前家庭
+        const listCheck = await db.collection('shopping_lists').doc(list_id).get()
+        if (!listCheck.data || listCheck.data.family_id !== familyId) {
+          return { code: -1, message: '清单不存在或无权操作', data: null }
+        }
+        // 内容安全检查：逐项检测新物品名称
+        if (items && Array.isArray(items)) {
+          for (const item of items) {
+            if (item.name) {
+              const ck = await checkText(OPENID, item.name)
+              if (!ck.pass) return { code: -1, message: '物品名称违规，请修改', data: null }
+            }
+          }
+        }
         const updateData = { updated_at: new Date() }
         if (items) updateData.items = items
         if (estimated_cost !== undefined) updateData.estimated_cost = estimated_cost
@@ -108,6 +145,11 @@ exports.main = async (event, context) => {
         // 删除采购清单
         if (!list_id) {
           return { code: -1, message: '缺少清单ID', data: null }
+        }
+        // 校验清单属于当前家庭
+        const delCheck = await db.collection('shopping_lists').doc(list_id).get()
+        if (!delCheck.data || delCheck.data.family_id !== familyId) {
+          return { code: -1, message: '清单不存在或无权操作', data: null }
         }
         await db.collection('shopping_lists').doc(list_id).remove()
         return { code: 0, message: '清单已删除', data: null }

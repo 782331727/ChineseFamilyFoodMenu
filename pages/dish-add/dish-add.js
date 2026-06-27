@@ -7,6 +7,7 @@ Page({
   data: {
     currentTab: 'manual',
     editingId: '',
+    originalFingerprint: '',   // 编辑模式：原始表单指纹（用于判断是否需要重新安检）
     // AI表单
     aiForm: {
       scene: 'daily',
@@ -152,12 +153,34 @@ Page({
       steps: dish.steps || []
     })
 
-    callFunction('dish-add', cloudData).then(() => {
-      wx.showToast({ title: '已加入菜品库', icon: 'success' })
-    }).catch(() => {})
+	    callFunction('dish-add', cloudData).then(() => {
+	      wx.showToast({ title: '已加入菜品库', icon: 'success' })
+	    }).catch((e) => {
+	      const msg = (e && e.message) || ''
+	      if (msg.includes('违规')) {
+	        wx.showModal({
+	          title: '内容审核未通过',
+	          content: '该菜品内容可能包含不合规信息，无法加入菜品库。',
+	          showCancel: false, confirmText: '知道了'
+	        })
+	      }
+	    })
   },
 
   // === 手动表单 ===
+  // 计算表单指纹（文字+图片数量，用于判断是否需要重新安检）
+  formFingerprint() {
+    const f = this.data.form
+    const texts = [
+      f.name || '',
+      ...(f.tags || []),
+      ...(f.ingredients || []).map(i => (i.name || '') + '|' + (i.amount || '')),
+      ...(f.steps || []),
+      'imgs:' + (f.images || []).length  // 图片数变化也纳入指纹
+    ]
+    return texts.join(';')
+  },
+
   // 编辑模式加载菜品详情
   // dish-detail 云函数参数：dish_id，返回：{ dish, cook_history }
   loadDishForEdit(id) {
@@ -171,25 +194,16 @@ Page({
       // 原始 cloud:// fileID（用于保存），temp URL（用于预览）
       const rawImages = (data.image_urls_raw && data.image_urls_raw.length > 0)
         ? data.image_urls_raw
-        : (mapped.image && mapped.image.startsWith('cloud://') ? [mapped.image] : [])
+        : (mapped.images || []).filter(u => u && u.startsWith('cloud://'))
       this.setData({
         editRawImages: rawImages,
         form: {
-          name: mapped.name || '',
-          images: mapped.images || (mapped.image ? [mapped.image] : []),
-          categoryIndex,
-          difficulty: mapped.difficulty || 'easy',
-          cookTime: String(mapped.cookTime || ''),
-          tags: mapped.tags || [],
-          isPublic: mapped.isPublic || false,
-          ingredients: mapped.ingredients && mapped.ingredients.length > 0
-            ? mapped.ingredients
-            : [{ name: '', amount: '' }],
-          steps: mapped.steps && mapped.steps.length > 0
-            ? mapped.steps
-            : ['']
+          ...mapped,
+          categoryIndex
         }
       })
+      // 记录原始文字指纹，用于保存时判断是否需要重新安检
+      this.setData({ originalFingerprint: this.formFingerprint() })
     }).catch(() => {})
   },
 
@@ -210,7 +224,7 @@ Page({
     this.setData({ 'form.isPublic': !this.data.form.isPublic })
   },
 
-  // 图片（支持多图）
+  // 图片（支持多图）— 先传后审：上传到临时云存储 → img-check 检测 → 合规保留/违规删除
   chooseImage() {
     const remain = 9 - this.data.form.images.length
     if (remain <= 0) { wx.showToast({ title: '最多上传9张', icon: 'none' }); return }
@@ -219,10 +233,47 @@ Page({
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
-      success: res => {
-        const newImages = res.tempFiles.map(f => f.tempFilePath)
-        const all = this.data.form.images.concat(newImages)
-        this.setData({ 'form.images': all })
+      success: async res => {
+        wx.showLoading({ title: '正在检查图片…', mask: true })
+        let passed = 0, rejected = 0
+
+        for (const f of res.tempFiles) {
+          try {
+            // 1. 上传到云存储临时目录
+            const uploadRes = await wx.cloud.uploadFile({
+              cloudPath: `tmp-check/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`,
+              filePath: f.tempFilePath
+            })
+            // 2. 调用 img-check 检测
+            const check = await wx.cloud.callFunction({
+              name: 'img-check',
+              data: { fileID: uploadRes.fileID }
+            })
+            // 3. 合规保留，违规删云文件
+            if (check.result && check.result.pass) {
+              this.data.form.images.push(uploadRes.fileID)
+              passed++
+            } else {
+              wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(() => {})
+              rejected++
+              console.warn('[img-check] rejected:', (check.result || {}).diag)
+            }
+          } catch (_) {
+            rejected++
+          }
+        }
+
+        wx.hideLoading()
+        this.setData({ 'form.images': this.data.form.images })
+        if (rejected > 0) {
+          wx.showModal({
+            title: '图片审核',
+            content: `已添加 ${passed} 张，${rejected} 张未通过审核`,
+            showCancel: false, confirmText: '知道了'
+          })
+        } else if (passed > 0) {
+          wx.showToast({ title: `已添加 ${passed} 张`, icon: 'success' })
+        }
       }
     })
   },
@@ -317,7 +368,13 @@ Page({
       return
     }
 
-    wx.showLoading({ title: '保存中...' })
+    // 智能安检：只有表单内容有变化才需要重新检测
+    const currentFp = this.formFingerprint()
+    const contentChanged = currentFp !== this.data.originalFingerprint
+    wx.showLoading({
+      title: contentChanged ? '正在检查内容合规性…' : '保存中…',
+      mask: true
+    })
 
     const doSave = (imageFileIDs) => {
       const cloudData = dishToCloud({
@@ -334,37 +391,53 @@ Page({
       })
 
       const params = this.data.editingId
-        ? { action: 'update', dish_id: this.data.editingId, ...cloudData }
+        ? { action: 'update', dish_id: this.data.editingId, ...cloudData, skip_check: !contentChanged }
         : { action: 'add', ...cloudData }
 
-      callFunction('dish-add', params).then(() => {
-        wx.hideLoading()
-        wx.showToast({ title: this.data.editingId ? '更新成功' : '保存成功', icon: 'success' })
-        // 通知菜品库需要刷新
-        getApp().globalData.dishesNeedRefresh = true
-        setTimeout(() => wx.switchTab({ url: '/pages/dishes/dishes' }), 1500)
-      }).catch(() => {
-        wx.hideLoading()
-      })
+	      callFunction('dish-add', params).then(() => {
+	        wx.hideLoading()
+	        wx.showToast({ title: this.data.editingId ? '更新成功' : '保存成功', icon: 'success' })
+	        // 通知菜品库需要刷新
+	        getApp().globalData.dishesNeedRefresh = true
+	        setTimeout(() => wx.switchTab({ url: '/pages/dishes/dishes' }), 1500)
+		      }).catch((e) => {
+		        wx.hideLoading()
+		        // api.js 已通过 toast 显示错误消息（含内容违规等），此处保持表单不关闭让用户修改
+		        const msg = (e && e.message) || ''
+		        if (msg.includes('违规')) {
+		          const isImage = msg.includes('图片')
+		          wx.showModal({
+		            title: '内容审核未通过',
+		            content: isImage
+		              ? '您上传的图片包含不合规内容，请更换后重试。'
+		              : '您发布的文字内容可能包含不合规信息，请修改后重试。',
+		            showCancel: false, confirmText: '知道了'
+		          })
+		        }
+		      })
     }
 
-    // 区分本地临时图片和已存储的 cloud:// fileID
-    const tempImages = form.images.filter(img =>
-      img && (img.startsWith('http://tmp') || img.startsWith('wxfile://'))
-    )
-    // 编辑模式：保留原始 cloud:// fileID
-    const existingCloudIDs = this.data.editingId ? this.data.editRawImages : []
+    // 收集新上传的 cloud:// fileID（chooseImage 已上传并检测）
+    const cloudIDs = form.images.filter(img => img && img.startsWith('cloud://'))
 
-    if (tempImages.length > 0) {
-      const { uploadImages } = require('../../utils/api')
-      uploadImages(tempImages, 'dishes').then(uploadedIDs => {
-        doSave([...existingCloudIDs, ...uploadedIDs])
-      }).catch(() => {
-        wx.hideLoading()
-        wx.showToast({ title: '图片上传失败', icon: 'none' })
-      })
+    if (this.data.editingId) {
+      // 编辑模式：form.images 是临时展示 URL（https://...），不能上传
+      // 直接用 editRawImages（原始 cloud://）+ 新加的 cloudIDs
+      doSave([...this.data.editRawImages, ...cloudIDs])
     } else {
-      doSave(existingCloudIDs)
+      // 新增模式：可能有本地临时图片需上传
+      const tempImages = form.images.filter(img => img && !img.startsWith('cloud://'))
+      if (tempImages.length > 0) {
+        const { uploadImages } = require('../../utils/api')
+        uploadImages(tempImages, 'dishes').then(uploadedIDs => {
+          doSave([...cloudIDs, ...uploadedIDs])
+        }).catch(() => {
+          wx.hideLoading()
+          wx.showToast({ title: '图片上传失败', icon: 'none' })
+        })
+      } else {
+        doSave(cloudIDs)
+      }
     }
   }
 })

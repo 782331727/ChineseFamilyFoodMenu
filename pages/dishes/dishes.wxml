@@ -25,6 +25,12 @@
     </view>
   </scroll-view>
 
+  <!-- 内容巡查提示（UGC 审核机制：仅 admin/cook 可见） -->
+  <view class="review-bar" wx:if="{{canManageDishes && dishList.length > 0}}">
+    <text class="review-icon">🛡️</text>
+    <text class="review-text">内容巡查：最新菜品优先展示，可长按删除或批量管理违规内容</text>
+  </view>
+
   <!-- 回收站面板 -->
   <view class="trash-panel" wx:if="{{showTrash}}">
     <view class="trash-header">

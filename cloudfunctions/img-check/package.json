@@ -1,0 +1,9 @@
+{
+  "name": "img-check",
+  "version": "1.0.0",
+  "description": "图片内容安全检测",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

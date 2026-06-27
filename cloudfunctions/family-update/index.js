@@ -32,11 +32,22 @@ exports.main = async (event, context) => {
       case 'update_family': {
         const updateData = {}
         if (family_name) {
-          // 内容安全检测
+          // 内容安全检测 v2.0：家庭名称使用 scene=1（资料场景）
           try {
-            const check = await cloud.openapi.security.msgSecCheck({ content: family_name })
-            if (check.errCode !== 0) return { code: -1, message: '内容违规，请修改', data: null }
-          } catch (e) {}
+            const check = await cloud.openapi.security.msgSecCheck({
+              openid: OPENID,       // 必填：当前用户 openid
+              scene: 1,             // 必填：1=资料
+              version: 2,           // 必填：2.0 接口
+              content: family_name  // 必填：待检测文本
+            })
+            if (check.result && check.result.suggest !== 'pass') {
+              return { code: -1, message: '内容违规，请修改', data: null }
+            }
+          } catch (e) {
+            // fail-close：安全检查异常时拒绝提交
+            console.error('[family-update] msgSecCheck v2.0 调用失败:', e.errCode, e.message || e.errMsg)
+            return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+          }
           updateData.name = family_name
         }
         if (Object.keys(updateData).length === 0) {

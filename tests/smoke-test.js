@@ -503,7 +503,7 @@ async function phaseSubPages(mp) {
 // ============================================================
 
 async function main() {
-  console.log('=== 张姐私房菜谱 v1.2.1 全角色冒烟测试 ===')
+  console.log('=== 张姐私房菜谱 v1.2.2 全角色冒烟测试 ===')
   console.log('端口: ' + DEVTOOL_PORT + '\n')
 
   let mp

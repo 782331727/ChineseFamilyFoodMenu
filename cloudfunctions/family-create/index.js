@@ -48,6 +48,22 @@ exports.main = async (event, context) => {
       }
     }
 
+    // 创建家庭前检查名称合规性
+    try {
+      const check = await cloud.openapi.security.msgSecCheck({
+        openid: OPENID,
+        scene: 1,
+        version: 2,
+        content: name
+      })
+      if (check.result && check.result.suggest !== 'pass') {
+        return { code: -1, message: '家庭名称违规，请修改', data: null }
+      }
+    } catch (e) {
+      console.error('[family-create] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+      return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+    }
+
     // 创建家庭
     const familyData = {
       name,

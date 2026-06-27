@@ -5,6 +5,35 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
+// 内容安全检查：文字
+async function checkText(openid, content) {
+  if (!content) return { pass: true }
+  try {
+    const res = await cloud.openapi.security.msgSecCheck({
+      openid, scene: 2, version: 2, content
+    })
+    return { pass: res.result && res.result.suggest === 'pass' }
+  } catch (e) {
+    console.error('[menu-manage] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+    return { pass: false }
+  }
+}
+
+// 内容安全检查：图片
+async function checkImage(fileID) {
+  if (!fileID || !fileID.startsWith('cloud://')) return { pass: true }
+  try {
+    const downloadRes = await cloud.downloadFile({ fileID })
+    const checkRes = await cloud.openapi.security.imgSecCheck({
+      media: { contentType: 'image/jpeg', value: downloadRes.fileContent }
+    })
+    return { pass: checkRes.errCode === 0 }
+  } catch (e) {
+    console.error('[menu-manage] imgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+    return { pass: false }
+  }
+}
+
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
   const {
@@ -43,6 +72,12 @@ exports.main = async (event, context) => {
         const validMeals = ['breakfast', 'lunch', 'dinner']
         if (!validMeals.includes(meal_type)) {
           return { code: -1, message: '无效的餐次类型', data: null }
+        }
+
+        // 内容安全检查
+        if (note) {
+          const ck = await checkText(OPENID, note)
+          if (!ck.pass) return { code: -1, message: '备注内容违规，请修改', data: null }
         }
 
         const menuData = {
@@ -128,6 +163,11 @@ exports.main = async (event, context) => {
         if (!validStatus.includes(status)) {
           return { code: -1, message: '无效的状态', data: null }
         }
+        // 校验菜单项属于当前家庭
+        const menuCheck = await db.collection('menus').doc(menu_id).get()
+        if (!menuCheck.data || menuCheck.data.family_id !== familyId) {
+          return { code: -1, message: '菜单项不存在或无权操作', data: null }
+        }
         const updateData = { status, updated_at: new Date() }
         if (status === 'cooking' || status === 'done') {
           updateData.cook_id = user._id
@@ -166,6 +206,20 @@ exports.main = async (event, context) => {
         if (rating < 1 || rating > 5) {
           return { code: -1, message: '评分范围 1-5', data: null }
         }
+        // 校验菜单项属于当前家庭
+        const rateMenuCheck = await db.collection('menus').doc(menu_id).get()
+        if (!rateMenuCheck.data || rateMenuCheck.data.family_id !== familyId) {
+          return { code: -1, message: '菜单项不存在或无权操作', data: null }
+        }
+        // 内容安全检查：备注 + 图片
+        if (note) {
+          const ck = await checkText(OPENID, note)
+          if (!ck.pass) return { code: -1, message: '备注内容违规，请修改', data: null }
+        }
+        if (image_url) {
+          const ik = await checkImage(image_url)
+          if (!ik.pass) return { code: -1, message: '图片包含违规内容，请更换', data: null }
+        }
         await db.collection('menus').doc(menu_id).update({
           data: { rating: Number(rating), note: note || '', image_url: image_url || '', updated_at: new Date() }
         })
@@ -194,6 +248,11 @@ exports.main = async (event, context) => {
         // 删除菜单项
         if (!menu_id) {
           return { code: -1, message: '缺少菜单ID', data: null }
+        }
+        // 校验菜单项属于当前家庭
+        const removeCheck = await db.collection('menus').doc(menu_id).get()
+        if (!removeCheck.data || removeCheck.data.family_id !== familyId) {
+          return { code: -1, message: '菜单项不存在或无权操作', data: null }
         }
         await db.collection('menus').doc(menu_id).remove()
         return { code: 0, message: '菜单项已删除', data: null }

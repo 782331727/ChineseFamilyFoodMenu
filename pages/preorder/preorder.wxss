@@ -1,21 +1,26 @@
 /* pages/preorder/preorder.wxss */
 .container {
-  padding: 24rpx;
+  padding: 16rpx;
   padding-bottom: 200rpx;
 }
 
 .card {
-  margin-bottom: 24rpx;
+  margin-bottom: 12rpx;
+}
+
+/* 日期 + 餐次合并区域 */
+.compact-card {
+  padding: 12rpx 16rpx;
 }
 
 .form-label {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: #333333;
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
 }
 
-/* 日期选择 */
+/* 日期选择 — 缩小 */
 .date-scroll {
   display: flex;
   white-space: nowrap;
@@ -25,11 +30,11 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  padding: 16rpx 32rpx;
-  margin-right: 16rpx;
-  border-radius: 16rpx;
+  padding: 4rpx 20rpx;
+  margin-right: 10rpx;
+  border-radius: 12rpx;
   background: #FFF8F3;
-  min-width: 120rpx;
+  min-width: 96rpx;
 }
 
 .date-item.active {
@@ -37,7 +42,7 @@
 }
 
 .date-label {
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: #555555;
   font-weight: 600;
 }
@@ -47,63 +52,49 @@
 }
 
 .date-week {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: #999999;
-  margin-top: 4rpx;
+  margin-top: 2rpx;
 }
 
 .date-item.active .date-week {
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* 餐次选择 */
-.meal-selector {
+/* 餐次 */
+.meal-row {
   display: flex;
-  gap: 16rpx;
+  gap: 10rpx;
+  margin-top: 6rpx;
+  border-top: 1rpx solid #FFF0E0;
+  padding-top: 6rpx;
 }
 
-.meal-option {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24rpx 0;
-  border-radius: 16rpx;
+.meal-chip {
+  padding: 16rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
   background: #FFF8F3;
-  border: 2rpx solid transparent;
+  color: #666;
 }
 
-.meal-option.active {
-  border-color: #FF6B35;
-  background: rgba(255, 107, 53, 0.08);
-}
-
-.meal-emoji {
-  font-size: 40rpx;
-  margin-bottom: 8rpx;
-}
-
-.meal-name {
-  font-size: 26rpx;
-  color: #555555;
-}
-
-.meal-option.active .meal-name {
-  color: #FF6B35;
+.meal-chip.active {
+  background: #FF6B35;
+  color: #FFF;
   font-weight: 600;
 }
 
-/* 菜品滚动框 */
+/* 菜品滚动框 — 更大 */
 .dish-scroll {
-  max-height: 600rpx;
+  max-height: 800rpx;
 }
 
-/* 菜品网格 */
+/* 菜品网格 — 更大图 */
 .dish-grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 12rpx;
+  gap: 10rpx;
 }
 
 .dish-grid-item {
@@ -122,7 +113,7 @@
 
 .grid-dish-image {
   width: 100%;
-  height: 160rpx;
+  height: 200rpx;
 }
 
 .grid-dish-name {
@@ -130,7 +121,7 @@
   font-size: 24rpx;
   color: #333333;
   text-align: center;
-  padding: 8rpx;
+  padding: 10rpx 6rpx;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

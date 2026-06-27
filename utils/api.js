@@ -63,12 +63,13 @@ function callFunction(name, data = {}) {
       fail(err) {
         // 透传真实错误信息，便于定位（如云函数未部署/环境不匹配）
         console.error(`[callFunction] ${name} 失败:`, err)
-        const detail = err && err.errMsg ? err.errMsg : '网络异常'
+        const raw = (err && err.errMsg) || (err && err.message) || ''
+        const detail = typeof raw === 'string' ? raw : '网络异常'
         // 微信 fail 的 errMsg 常很长，截取关键部分作为 toast
-        const short = typeof detail === 'string' && detail.length > 20
+        const short = detail.length > 20
           ? detail.replace(/^cloud function execution error.*/, '云函数调用失败').slice(0, 20)
           : detail
-        wx.showToast({ title: short, icon: 'none' })
+        if (short) wx.showToast({ title: short, icon: 'none' })
         reject(err)
       }
     })

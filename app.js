@@ -111,22 +111,10 @@ App({
     })
   },
 
-  // 获取用户信息 - 失败时返回默认值（已由 profile 页按钮主导）
+  // 获取用户信息 - 返回默认值（wx.getUserProfile 在基础库 2.27+ 已回收）
+  // 用户头像/昵称通过 profile 页面独立编辑
   getUserProfile() {
-    return new Promise((resolve) => {
-      // wx.getUserProfile 在小程序基础库 2.27+ 已回收
-      // 优先使用 open-type="getUserInfo" 按钮方式
-      // 此方法作为 fallback 保留
-      if (wx.getUserProfile) {
-        wx.getUserProfile({
-          desc: '用于完善个人资料',
-          success: res => resolve(res.userInfo),
-          fail: () => resolve({ nickName: '微信用户', avatarUrl: '' })
-        })
-      } else {
-        resolve({ nickName: '微信用户', avatarUrl: '' })
-      }
-    })
+    return Promise.resolve({ nickName: '微信用户', avatarUrl: '' })
   },
 
   // 更新全局角色

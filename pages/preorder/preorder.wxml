@@ -17,24 +17,17 @@
   </view>
 
   <block wx:else>
-  <!-- 日期选择 -->
-  <view class="card">
-    <view class="form-label">选择日期</view>
+  <!-- 日期 + 餐次合并 -->
+  <view class="card compact-card">
     <scroll-view class="date-scroll" scroll-x enable-flex>
       <view class="date-item {{selectedDate === item.date ? 'active' : ''}}" wx:for="{{dateOptions}}" wx:key="date" data-date="{{item.date}}" bind:tap="selectDate">
         <text class="date-label">{{item.label}}</text>
         <text class="date-week">{{item.week}}</text>
       </view>
     </scroll-view>
-  </view>
-
-  <!-- 餐次选择 -->
-  <view class="card">
-    <view class="form-label">餐次</view>
-    <view class="meal-selector">
-      <view class="meal-option {{selectedMeal === item.value ? 'active' : ''}}" wx:for="{{mealOptions}}" wx:key="value" data-value="{{item.value}}" bind:tap="selectMeal">
-        <text class="meal-emoji">{{item.emoji}}</text>
-        <text class="meal-name">{{item.label}}</text>
+    <view class="meal-row">
+      <view class="meal-chip {{selectedMeal === item.value ? 'active' : ''}}" wx:for="{{mealOptions}}" wx:key="value" data-value="{{item.value}}" bind:tap="selectMeal">
+        <text>{{item.emoji}} {{item.label}}</text>
       </view>
     </view>
   </view>

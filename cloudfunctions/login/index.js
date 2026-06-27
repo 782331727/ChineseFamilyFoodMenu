@@ -9,6 +9,20 @@ exports.main = async (event, context) => {
   const { nickname, avatar } = event
 
   try {
+    // 内容安全检测：昵称（创建/更新前检查）
+    if (nickname && nickname !== '微信用户') {
+      try {
+        const check = await cloud.openapi.security.msgSecCheck({
+          openid: OPENID, scene: 1, version: 2, content: nickname
+        })
+        if (check.result && check.result.suggest !== 'pass') {
+          return { code: -1, message: '昵称违规，请修改', data: null }
+        }
+      } catch (e) {
+        console.error('[login] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+        return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+      }
+    }
     // 查询用户是否已存在
     const userRes = await db.collection('users').where({ openid: OPENID }).get()
 

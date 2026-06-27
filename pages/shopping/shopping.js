@@ -27,6 +27,7 @@ Page({
     inventoryItems: [],
     aiGenerating: false,
     canManage: false,
+    hasFamily: false,
     // 批量操作
     allChecked: false,
     // 批量编辑模式（类似菜品库的批量管理）
@@ -42,15 +43,18 @@ Page({
   },
 
   onLoad() {
-    this.setData({ canManage: hasPermission('manage_shopping') })
+    const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
+    this.setData({ canManage: hasPermission('manage_shopping'), hasFamily: hf })
     this.initDateRange()
-    this.loadShoppingList()
+    if (hf) this.loadShoppingList()
   },
 
   onShow() {
+    const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
     refreshRole().then(() => {
-      this.setData({ canManage: hasPermission('manage_shopping') })
+      this.setData({ canManage: hasPermission('manage_shopping'), hasFamily: hf })
     })
+    if (!hf) return
     // 如果正在同步中，跳过本次加载，等 syncToCloud 完成后再刷新
     if (this._syncing) return
     this.loadShoppingList()
@@ -77,6 +81,10 @@ Page({
       }
       this.buildGrouped(rawLists)
     }).catch(() => {})
+  },
+
+  goJoinFamily() {
+    wx.navigateTo({ url: '/pages/family/family' })
   },
 
   // 把原始清单数据按 category 分组，合并统计

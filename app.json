@@ -11,7 +11,8 @@
     "pages/preorder-list/preorder-list",
     "pages/my-preorders/my-preorders",
     "pages/family/family",
-    "pages/privacy/privacy"
+    "pages/privacy/privacy",
+    "pages/admin/admin"
   ],
   "window": {
     "backgroundColor": "#FFF8F3",

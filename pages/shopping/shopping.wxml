@@ -1,5 +1,18 @@
 <!-- pages/shopping/shopping.wxml -->
 <view class="container">
+  <!-- 未加入家庭 -->
+  <view class="card no-family-card" wx:if="{{!hasFamily}}">
+    <view class="no-family-row">
+      <text class="no-family-icon">🏔</text>
+      <view class="no-family-text">
+        <text class="no-family-title">加入家庭即可查看采购清单</text>
+        <text class="no-family-sub">创建或加入一个家庭，预定菜品后自动生成采购清单</text>
+      </view>
+    </view>
+    <view class="btn-primary no-family-btn" bind:tap="goJoinFamily">去加入家庭</view>
+  </view>
+
+  <block wx:else>
   <!-- 日期范围 -->
   <view class="date-range card">
     <text class="range-label">清单周期</text>
@@ -90,7 +103,7 @@
         <text class="batch-btn-icon">📋</text>
         <text>复制清单</text>
       </view>
-      <view class="batch-btn batch-edit-btn" bind:tap="enterBatchMode">
+      <view class="batch-btn batch-edit-btn" bind:tap="enterBatchMode" wx:if="{{canManage}}">
         <text class="batch-btn-icon">✏️</text>
         <text>批量编辑</text>
       </view>
@@ -176,4 +189,5 @@
   <empty-state wx:else text="暂无采购清单" subText="预定菜品后将自动生成" emoji="🛒"></empty-state>
 
   <view style="height: 120rpx;"></view>
+  </block>
 </view>

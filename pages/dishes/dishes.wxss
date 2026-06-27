@@ -4,6 +4,26 @@
   padding-bottom: 200rpx;
 }
 
+/* UGC 内容巡查提示条 */
+.review-bar {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 20rpx;
+  margin-bottom: 16rpx;
+  background: #FFF3E0;
+  border-radius: 12rpx;
+  border-left: 6rpx solid #FF6B35;
+}
+.review-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+.review-text {
+  font-size: 24rpx;
+  color: #E67E22;
+  flex: 1;
+}
+
 /* 搜索栏 */
 .search-bar {
   margin-bottom: 20rpx;

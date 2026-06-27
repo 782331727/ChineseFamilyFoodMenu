@@ -4,26 +4,26 @@
     "action": "invokeFunction",
     "functionName": "dish-list",
     "invokeResult": {
-      "RequestId": "1ddd07b5-e09c-4829-a826-10fda460da08",
-      "FunctionRequestId": "1ddd07b5-e09c-4829-a826-10fda460da08",
-      "InvokeResult": 0,
-      "Log": "Init Report RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08 Coldstart: 578ms (InitRuntime: 9ms InitFunction: 569ms) Memory: 256MB MemUsage: 24.85MB\nSTART RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08\nEvent RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08\n2026-06-26T12:08:37.185Z\t1ddd07b5-e09c-4829-a826-10fda460da08\t[dish-list] error: Error: 查询参数对象值不能均为undefined\n    at CollectionReference.where (/var/user/node_modules/@cloudbase/database/dist/commonjs/query.js:114:19)\n    at CollectionReference.where (/var/user/node_modules/wx-server-sdk/index.js:1473:38)\n    at exports.main (/var/user/index.js:17:50)\n    at IncomingMessage.<anonymous> (/data/scf/frame/node16/runtime.js:135:28)\n    at IncomingMessage.emit (node:events:402:35)\n    at endReadableNT (node:internal/streams/readable:1343:12)\n    at processTicksAndRejections (node:internal/process/task_queues:83:21)\nResponse RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08 RetMsg: {\"code\":-1,\"message\":\"查询参数对象值不能均为undefined\",\"data\":null}\nEND RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08\nReport RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08 Duration: 42ms Memory: 256MB MemUsage: 24.984375MB\n",
-      "RetMsg": "{\"code\":-1,\"message\":\"查询参数对象值不能均为undefined\",\"data\":null}",
+      "RequestId": "218c89af-17e2-434b-bf33-db1ab0aa2b79",
       "ErrMsg": "",
-      "MemUsage": 26198016,
-      "Duration": 42,
-      "BillDuration": 100
+      "MemUsage": 26169344,
+      "Duration": 8,
+      "BillDuration": 100,
+      "FunctionRequestId": "218c89af-17e2-434b-bf33-db1ab0aa2b79",
+      "InvokeResult": 0,
+      "Log": "Init Report RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79 Coldstart: 562ms (InitRuntime: 16ms InitFunction: 546ms) Memory: 256MB MemUsage: 24.98MB\nSTART RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79\nEvent RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79\n2026-06-27T12:09:42.735Z\t218c89af-17e2-434b-bf33-db1ab0aa2b79\t[dish-list] error: Error: 查询参数对象值不能均为undefined\n    at CollectionReference.where (/var/user/node_modules/@cloudbase/database/dist/commonjs/query.js:114:19)\n    at CollectionReference.where (/var/user/node_modules/wx-server-sdk/index.js:1473:38)\n    at exports.main (/var/user/index.js:17:50)\n    at IncomingMessage.<anonymous> (/data/scf/frame/node16/runtime.js:135:28)\n    at IncomingMessage.emit (node:events:402:35)\n    at endReadableNT (node:internal/streams/readable:1343:12)\n    at processTicksAndRejections (node:internal/process/task_queues:83:21)\nResponse RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79 RetMsg: {\"code\":-1,\"message\":\"查询参数对象值不能均为undefined\",\"data\":null}\nEND RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79\nReport RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79 Duration: 8ms Memory: 256MB MemUsage: 24.957031MB\n",
+      "RetMsg": "{\"code\":-1,\"message\":\"查询参数对象值不能均为undefined\",\"data\":null}"
     },
     "raw": {
-      "RequestId": "1ddd07b5-e09c-4829-a826-10fda460da08",
-      "FunctionRequestId": "1ddd07b5-e09c-4829-a826-10fda460da08",
-      "InvokeResult": 0,
-      "Log": "Init Report RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08 Coldstart: 578ms (InitRuntime: 9ms InitFunction: 569ms) Memory: 256MB MemUsage: 24.85MB\nSTART RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08\nEvent RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08\n2026-06-26T12:08:37.185Z\t1ddd07b5-e09c-4829-a826-10fda460da08\t[dish-list] error: Error: 查询参数对象值不能均为undefined\n    at CollectionReference.where (/var/user/node_modules/@cloudbase/database/dist/commonjs/query.js:114:19)\n    at CollectionReference.where (/var/user/node_modules/wx-server-sdk/index.js:1473:38)\n    at exports.main (/var/user/index.js:17:50)\n    at IncomingMessage.<anonymous> (/data/scf/frame/node16/runtime.js:135:28)\n    at IncomingMessage.emit (node:events:402:35)\n    at endReadableNT (node:internal/streams/readable:1343:12)\n    at processTicksAndRejections (node:internal/process/task_queues:83:21)\nResponse RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08 RetMsg: {\"code\":-1,\"message\":\"查询参数对象值不能均为undefined\",\"data\":null}\nEND RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08\nReport RequestId: 1ddd07b5-e09c-4829-a826-10fda460da08 Duration: 42ms Memory: 256MB MemUsage: 24.984375MB\n",
-      "RetMsg": "{\"code\":-1,\"message\":\"查询参数对象值不能均为undefined\",\"data\":null}",
+      "RequestId": "218c89af-17e2-434b-bf33-db1ab0aa2b79",
       "ErrMsg": "",
-      "MemUsage": 26198016,
-      "Duration": 42,
-      "BillDuration": 100
+      "MemUsage": 26169344,
+      "Duration": 8,
+      "BillDuration": 100,
+      "FunctionRequestId": "218c89af-17e2-434b-bf33-db1ab0aa2b79",
+      "InvokeResult": 0,
+      "Log": "Init Report RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79 Coldstart: 562ms (InitRuntime: 16ms InitFunction: 546ms) Memory: 256MB MemUsage: 24.98MB\nSTART RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79\nEvent RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79\n2026-06-27T12:09:42.735Z\t218c89af-17e2-434b-bf33-db1ab0aa2b79\t[dish-list] error: Error: 查询参数对象值不能均为undefined\n    at CollectionReference.where (/var/user/node_modules/@cloudbase/database/dist/commonjs/query.js:114:19)\n    at CollectionReference.where (/var/user/node_modules/wx-server-sdk/index.js:1473:38)\n    at exports.main (/var/user/index.js:17:50)\n    at IncomingMessage.<anonymous> (/data/scf/frame/node16/runtime.js:135:28)\n    at IncomingMessage.emit (node:events:402:35)\n    at endReadableNT (node:internal/streams/readable:1343:12)\n    at processTicksAndRejections (node:internal/process/task_queues:83:21)\nResponse RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79 RetMsg: {\"code\":-1,\"message\":\"查询参数对象值不能均为undefined\",\"data\":null}\nEND RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79\nReport RequestId: 218c89af-17e2-434b-bf33-db1ab0aa2b79 Duration: 8ms Memory: 256MB MemUsage: 24.957031MB\n",
+      "RetMsg": "{\"code\":-1,\"message\":\"查询参数对象值不能均为undefined\",\"data\":null}"
     }
   },
   "message": "已调用函数 dish-list",

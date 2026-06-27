@@ -13,14 +13,21 @@ Page({
     historyDays: 3,           // 当前已加载的历史天数
     hasMore: false,            // 是否还有更早的预购记录
     totalAll: 0,
+    hasFamily: false,          // 是否有家庭（游客引导）
     today: getTodayStr()      // 今天日期，用于判断历史/未来
   },
 
   onLoad() {
-    this.loadMyPreorders()
+    const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
+    this.setData({ hasFamily: hf })
+    if (hf) this.loadMyPreorders()
+    else this.setData({ loading: false })
   },
 
   onShow() {
+    const hf = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
+    this.setData({ hasFamily: hf })
+    if (!hf) { this.setData({ loading: false, preorders: [], groupedList: [] }); return }
     // 每次显示时刷新（重置到默认 3 天）
     this.setData({ historyDays: 3 })
     this.loadMyPreorders()
@@ -54,6 +61,10 @@ Page({
     }).finally(() => {
       this.setData({ loading: false, loadingMore: false })
     })
+  },
+
+  goJoinFamily() {
+    wx.navigateTo({ url: '/pages/family/family' })
   },
 
   // 加载更早的预购（往前 3 天）

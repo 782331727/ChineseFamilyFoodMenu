@@ -31,6 +31,10 @@ Page({
     if (hf) this.loadData()
   },
 
+  goJoinFamily() {
+    wx.navigateTo({ url: '/pages/family/family' })
+  },
+
   // preorder-list 云函数返回 { preordered, not_preordered }
   // preordered 项：{ user_id, nickname, avatar, role, preorders:[{ dish_info }] }
   // not_preordered 项：{ user_id, nickname, avatar, role }

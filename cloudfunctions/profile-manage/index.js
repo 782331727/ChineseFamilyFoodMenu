@@ -52,13 +52,42 @@ exports.main = async (event, context) => {
       case 'update_user_info': {
         const updateData = {}
         if (nickname) {
+          // 内容安全检测 v2.0：昵称使用 scene=1（资料场景）
           try {
-            const check = await cloud.openapi.security.msgSecCheck({ content: nickname })
-            if (check.errCode !== 0) return { code: -1, message: '昵称违规，请修改', data: null }
-          } catch (e) {}
+            const check = await cloud.openapi.security.msgSecCheck({
+              openid: OPENID,      // 必填：当前用户 openid
+              scene: 1,            // 必填：1=资料
+              version: 2,          // 必填：2.0 接口
+              content: nickname    // 必填：待检测文本
+            })
+            if (check.result && check.result.suggest !== 'pass') {
+              return { code: -1, message: '昵称违规，请修改', data: null }
+            }
+          } catch (e) {
+            // fail-close：安全检查异常时拒绝提交
+            console.error('[profile-manage] msgSecCheck v2.0 调用失败:', e.errCode, e.message || e.errMsg)
+            return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+          }
           updateData.nickname = nickname
         }
-        if (avatar) updateData.avatar = avatar
+        if (avatar) {
+          // 图片安全检测：下载头像并调用 imgSecCheck
+          if (avatar.startsWith('cloud://')) {
+            try {
+              const downloadRes = await cloud.downloadFile({ fileID: avatar })
+              const checkRes = await cloud.openapi.security.imgSecCheck({
+                media: { contentType: 'image/jpeg', value: downloadRes.fileContent }
+              })
+              if (checkRes.errCode !== 0) {
+                return { code: -1, message: '头像包含违规内容，请更换', data: null }
+              }
+            } catch (e) {
+              console.error('[profile-manage] imgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+              return { code: -1, message: '头像安全检查暂时不可用，请稍后重试', data: null }
+            }
+          }
+          updateData.avatar = avatar
+        }
         if (Object.keys(updateData).length === 0) {
           return { code: -1, message: '没有需要更新的字段', data: null }
         }
@@ -86,6 +115,22 @@ exports.main = async (event, context) => {
         // 更新忌口列表
         if (!Array.isArray(avoidList)) {
           return { code: -1, message: '忌口列表格式错误', data: null }
+        }
+        // 内容安全检测：逐项检查忌口文本
+        for (const item of avoidList) {
+          if (item && typeof item === 'string') {
+            try {
+              const check = await cloud.openapi.security.msgSecCheck({
+                openid: OPENID, scene: 1, version: 2, content: item
+              })
+              if (check.result && check.result.suggest !== 'pass') {
+                return { code: -1, message: '忌口内容违规，请修改', data: null }
+              }
+            } catch (e) {
+              console.error('[profile-manage] msgSecCheck avoidList 失败:', e.errCode, e.message || e.errMsg)
+              return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+            }
+          }
         }
         await db.collection('users').doc(user._id).update({
           data: { allergies: avoidList }

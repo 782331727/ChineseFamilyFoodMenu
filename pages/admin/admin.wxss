@@ -1,0 +1,149 @@
+/* pages/admin/admin.wxss */
+.admin-container { padding-bottom: 60rpx; min-height: 100vh; background: #F5F5F5; }
+
+/* 头部 */
+.admin-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 24rpx 20rpx 12rpx; background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
+.admin-title { font-size: 32rpx; font-weight: 700; color: #FFF; }
+.openid-badge {
+  font-size: 20rpx; color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.12); padding: 8rpx 16rpx; border-radius: 20rpx;
+}
+
+/* Tab 导航 */
+.tab-bar { display: flex; white-space: nowrap; background: #FFF; padding: 8rpx 12rpx; border-bottom: 1rpx solid #EEE; }
+.tab-item {
+  display: inline-block; padding: 16rpx 24rpx; font-size: 26rpx; color: #666;
+  border-radius: 8rpx; margin-right: 4rpx;
+}
+.tab-item.active { background: #1a1a2e; color: #FFF; font-weight: 600; }
+
+.tab-content { padding: 16rpx; }
+
+/* 无权限 */
+.no-perm-card { text-align: center; padding: 80rpx 40rpx; }
+.no-perm-title { font-size: 36rpx; font-weight: 600; color: #333; display: block; }
+.no-perm-hint { display: block; font-size: 24rpx; color: #999; margin-top: 16rpx; word-break: break-all; }
+.copy-btn { display: inline-block; margin-top: 24rpx; padding: 16rpx 40rpx; background: #1a1a2e; color: #FFF; border-radius: 40rpx; font-size: 28rpx; }
+
+/* 统计 */
+.stats-grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.stat-card { flex: 1; min-width: 28%; padding: 24rpx 12rpx; border-radius: 16rpx; text-align: center; }
+.stat-num { display: block; font-size: 44rpx; font-weight: 800; color: #333; }
+.stat-label { display: block; font-size: 22rpx; color: #888; margin-top: 4rpx; }
+
+.quick-actions { margin-top: 24rpx; }
+.action-row { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 12rpx; }
+.action-btn { padding: 20rpx 28rpx; background: #FFF; border-radius: 12rpx; font-size: 26rpx; color: #1a1a2e; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
+
+/* 搜索 */
+.search-bar { display: flex; gap: 8rpx; margin-bottom: 12rpx; }
+.search-input { flex: 1; background: #FFF; border-radius: 12rpx; padding: 0 20rpx; height: 72rpx; font-size: 26rpx; }
+.search-btn { padding: 0 24rpx; background: #1a1a2e; color: #FFF; border-radius: 12rpx; font-size: 26rpx; line-height: 72rpx; }
+
+/* 分页 */
+.page-bar { display: flex; align-items: center; justify-content: center; gap: 16rpx; padding: 12rpx 0; }
+.page-btn { padding: 8rpx 24rpx; background: #FFF; border-radius: 8rpx; font-size: 24rpx; color: #1a1a2e; }
+.page-info { font-size: 24rpx; color: #999; }
+
+/* 筛选 */
+.filter-chips { display: flex; gap: 8rpx; flex-wrap: wrap; margin-bottom: 12rpx; }
+.chip-sm { padding: 10rpx 20rpx; border-radius: 20rpx; font-size: 22rpx; background: #FFF; color: #666; }
+.chip-sm.active { background: #1a1a2e; color: #FFF; }
+
+/* 批量操作 */
+.batch-bar { display: flex; align-items: center; justify-content: space-between; padding: 8rpx 0; margin-bottom: 8rpx; }
+.select-all { display: flex; align-items: center; gap: 8rpx; font-size: 22rpx; color: #666; }
+.checkbox { width: 32rpx; height: 32rpx; border: 2rpx solid #DDD; border-radius: 6rpx; background: #FFF; }
+.checkbox.checked { background: #1a1a2e; border-color: #1a1a2e; }
+.batch-delete-btn { padding: 8rpx 20rpx; background: #FFE0E0; color: #C0392B; border-radius: 8rpx; font-size: 22rpx; }
+
+/* 菜品 */
+.dish-item {
+  display: flex; align-items: center; background: #FFF;
+  border-radius: 12rpx; padding: 16rpx; margin-bottom: 8rpx;
+}
+.dish-check { margin-right: 12rpx; }
+.dish-info { flex: 1; min-width: 0; }
+.dish-name { font-size: 28rpx; font-weight: 600; color: #333; display: block; }
+.dish-meta { font-size: 22rpx; color: #999; display: block; margin-top: 4rpx; }
+.dish-meta-sm { font-size: 20rpx; color: #BBB; display: block; }
+.dish-actions { display: flex; gap: 4rpx; flex-shrink: 0; }
+.icon-btn {
+  width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center;
+  font-size: 28rpx; border-radius: 12rpx; background: #F5F5F5;
+}
+.icon-btn.del { color: #E74C3C; }
+
+/* 用户 */
+.user-item {
+  display: flex; align-items: center; background: #FFF;
+  border-radius: 12rpx; padding: 16rpx; margin-bottom: 8rpx;
+}
+.user-left { display: flex; align-items: center; flex: 1; min-width: 0; }
+.user-avatar { width: 72rpx; height: 72rpx; border-radius: 50%; flex-shrink: 0; background: #EEE; }
+.user-info { margin-left: 16rpx; min-width: 0; }
+.user-name { font-size: 28rpx; font-weight: 600; color: #333; display: block; }
+.user-meta { font-size: 22rpx; color: #999; display: block; margin-top: 2rpx; }
+.user-oid { font-size: 18rpx; color: #CCC; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300rpx; }
+.user-actions { display: flex; gap: 4rpx; flex-shrink: 0; }
+
+/* 家庭 */
+.fam-item {
+  display: flex; align-items: center; background: #FFF;
+  border-radius: 12rpx; padding: 20rpx 16rpx; margin-bottom: 8rpx;
+}
+.fam-info { flex: 1; min-width: 0; }
+.fam-name { font-size: 28rpx; font-weight: 600; color: #333; }
+.fam-meta { font-size: 22rpx; color: #999; display: block; margin-top: 4rpx; }
+.fam-actions { display: flex; gap: 4rpx; flex-shrink: 0; }
+
+/* 系统 */
+.section { background: #FFF; border-radius: 16rpx; padding: 20rpx; }
+.section-title { font-size: 28rpx; font-weight: 600; color: #333; margin-bottom: 16rpx; }
+.section-title-sm { font-size: 26rpx; font-weight: 600; color: #555; margin-bottom: 8rpx; display: block; }
+.admin-list { display: flex; flex-wrap: wrap; gap: 8rpx; margin-bottom: 16rpx; }
+.admin-chip {
+  display: flex; align-items: center; background: #FFF0E0;
+  border-radius: 8rpx; padding: 8rpx 12rpx; max-width: 100%;
+}
+.admin-oid { font-size: 20rpx; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240rpx; }
+.admin-remove { margin-left: 8rpx; font-size: 24rpx; color: #E74C3C; padding: 4rpx; }
+.add-admin-row { display: flex; gap: 8rpx; }
+.add-admin-input { flex: 1; background: #F5F5F5; border-radius: 8rpx; padding: 0 16rpx; height: 68rpx; font-size: 24rpx; }
+.add-admin-btn { padding: 0 24rpx; background: #1a1a2e; color: #FFF; border-radius: 8rpx; font-size: 24rpx; line-height: 68rpx; white-space: nowrap; }
+
+/* 模态框 */
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; padding: 40rpx;
+}
+.modal-card { background: #FFF; border-radius: 20rpx; padding: 32rpx; width: 100%; max-width: 600rpx; max-height: 80vh; overflow-y: auto; }
+.modal-wide { max-width: 640rpx; }
+.modal-title { font-size: 32rpx; font-weight: 700; color: #333; margin-bottom: 4rpx; }
+.modal-sub { font-size: 22rpx; color: #999; display: block; }
+.modal-btns { display: flex; gap: 16rpx; margin-top: 24rpx; }
+.btn-cancel { flex: 1; text-align: center; padding: 20rpx 0; background: #F5F5F5; border-radius: 12rpx; font-size: 28rpx; color: #666; }
+.btn-confirm { flex: 1; text-align: center; padding: 20rpx 0; background: #1a1a2e; border-radius: 12rpx; font-size: 28rpx; color: #FFF; }
+.btn-danger { flex: 1; text-align: center; padding: 20rpx 0; background: #FDE8E8; border-radius: 12rpx; font-size: 26rpx; color: #C0392B; }
+
+/* 家庭成员 */
+.divider { height: 1rpx; background: #EEE; margin: 16rpx 0; }
+.member-list { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 12rpx; }
+.member-item { display: flex; align-items: center; gap: 8rpx; background: #F8F8F8; border-radius: 12rpx; padding: 10rpx 16rpx; }
+.member-avatar { width: 48rpx; height: 48rpx; border-radius: 50%; background: #EEE; }
+.member-name { font-size: 24rpx; color: #333; }
+.member-role { font-size: 20rpx; color: #999; background: #EEE; padding: 2rpx 10rpx; border-radius: 8rpx; }
+
+/* 表单行 */
+.form-row { display: flex; align-items: center; margin-top: 16rpx; gap: 12rpx; }
+.form-label-sm { font-size: 24rpx; color: #666; width: 100rpx; flex-shrink: 0; }
+.form-input { flex: 1; background: #F5F5F5; border-radius: 8rpx; padding: 0 16rpx; height: 64rpx; font-size: 26rpx; }
+.form-inline { display: flex; gap: 8rpx; }
+
+/* 通用 */
+.loading-text { text-align: center; padding: 40rpx; font-size: 26rpx; color: #999; }
+.empty-text { text-align: center; padding: 60rpx; font-size: 28rpx; color: #BBB; }

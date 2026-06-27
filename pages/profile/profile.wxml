@@ -130,7 +130,7 @@
         <text class="menu-arrow">›</text>
       </view>
       <view class="menu-divider"></view>
-      <view class="menu-item" bind:tap="showAbout">
+      <view class="menu-item" bind:tap="showAbout" bindlongpress="goAdmin">
         <text class="menu-icon">ℹ️</text>
         <text class="menu-text">关于</text>
         <text class="menu-arrow">›</text>

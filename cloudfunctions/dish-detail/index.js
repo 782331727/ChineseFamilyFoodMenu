@@ -13,6 +13,47 @@ exports.main = async (event, context) => {
   }
 
   try {
+    // 先查菜品，判断是否为公开菜
+    const dishRes = await db.collection('dishes').doc(dish_id).get()
+    const dish = dishRes.data
+
+    if (!dish) {
+      return { code: -1, message: '菜品不存在', data: null }
+    }
+
+    // 公开菜品：任何人都可以查看（游客、无家庭、跨家庭均放行）
+    if (dish.is_public) {
+      // 保存原始 cloud:// fileID（供编辑模式恢复图片用）
+      const imageUrlsRaw = dish.image_urls && dish.image_urls.length > 0
+        ? [...dish.image_urls]
+        : (dish.image_url ? [dish.image_url] : [])
+
+      const imgFileIDs = []
+      if (dish.image_url && dish.image_url.startsWith('cloud://')) imgFileIDs.push(dish.image_url)
+      if (dish.image_urls && Array.isArray(dish.image_urls)) {
+        dish.image_urls.forEach(url => { if (url && url.startsWith('cloud://')) imgFileIDs.push(url) })
+      }
+      if (imgFileIDs.length > 0) {
+        try {
+          const tmpRes = await cloud.getTempFileURL({ fileList: [...new Set(imgFileIDs)] })
+          const urlMap = {}
+          tmpRes.fileList.forEach(f => { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+          if (dish.image_url && urlMap[dish.image_url]) dish.image_url = urlMap[dish.image_url]
+          if (dish.image_urls && Array.isArray(dish.image_urls)) {
+            dish.image_urls = dish.image_urls.map(url => urlMap[url] || url)
+          }
+        } catch (e) {
+          console.warn('[dish-detail] getTempFileURL failed, continuing without temp URLs:', e.message)
+        }
+      }
+
+      return {
+        code: 0, message: 'ok',
+        data: { dish, cook_history: [], my_rating: 0, image_urls_raw: imageUrlsRaw }
+      }
+    }
+
+    // 非公开菜品：必须登录、有家庭、且菜品属于该家庭
     // 查询调用者
     const userRes = await db.collection('users').where({ openid: OPENID }).get()
     if (userRes.data.length === 0) {
@@ -22,14 +63,6 @@ exports.main = async (event, context) => {
 
     if (!user.family_id) {
       return { code: -1, message: '您未加入任何家庭', data: null }
-    }
-
-    // 查询菜品
-    const dishRes = await db.collection('dishes').doc(dish_id).get()
-    const dish = dishRes.data
-
-    if (!dish) {
-      return { code: -1, message: '菜品不存在', data: null }
     }
 
     // 校验菜品属于调用者的家庭

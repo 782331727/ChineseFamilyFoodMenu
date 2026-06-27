@@ -1,6 +1,18 @@
 <view class="container">
-  <!-- 空状态 -->
-  <empty-state wx:if="{{preorders.length === 0 && !loading}}" text="暂无预购记录" subText="去菜品页面预购你想吃的菜吧"></empty-state>
+  <!-- 未加入家庭 -->
+  <view class="card no-family-card" wx:if="{{!hasFamily && !loading}}">
+    <view class="no-family-row">
+      <text class="no-family-icon">🏔</text>
+      <view class="no-family-text">
+        <text class="no-family-title">加入家庭即可查看预定</text>
+        <text class="no-family-sub">创建或加入一个家庭，开始预定菜品吧</text>
+      </view>
+    </view>
+    <view class="btn-primary no-family-btn" bind:tap="goJoinFamily">去加入家庭</view>
+  </view>
+
+  <!-- 空状态（有家庭但无预订单） -->
+  <empty-state wx:elif="{{preorders.length === 0 && !loading}}" text="暂无预购记录" subText="去菜品页面预购你想吃的菜吧"></empty-state>
 
   <!-- 首次加载中 -->
   <view class="loading-bar" wx:if="{{loading}}">

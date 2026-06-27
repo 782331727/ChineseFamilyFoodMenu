@@ -1,0 +1,246 @@
+<!-- pages/admin/admin.wxml -->
+<view class="admin-container">
+  <!-- 头部 -->
+  <view class="admin-header">
+    <text class="admin-title">🛡️ 超管控制台</text>
+    <view class="openid-badge" wx:if="{{myOpenid}}" bind:tap="copyOpenid">
+      <text>你: {{myOpenid.slice(0,10)}}...</text>
+    </view>
+  </view>
+
+  <!-- 无权限 -->
+  <view class="no-perm-card" wx:if="{{noPermission}}">
+    <text class="no-perm-title">⛔ 无管理权限</text>
+    <text class="no-perm-hint">OPENID: {{myOpenid || '获取中...'}}</text>
+    <view class="copy-btn" bind:tap="copyOpenid">复制OPENID</view>
+  </view>
+
+  <block wx:if="{{!noPermission}}">
+    <!-- Tab 导航 -->
+    <scroll-view class="tab-bar" scroll-x enable-flex>
+      <view class="tab-item {{currentTab === item.key ? 'active' : ''}}" wx:for="{{tabs}}" wx:key="key" data-tab="{{item.key}}" bind:tap="switchTab">
+        <text>{{item.emoji}} {{item.label}}</text>
+      </view>
+    </scroll-view>
+
+    <!-- ==================== 📊 概览 ==================== -->
+    <view class="tab-content" wx:if="{{currentTab === 'overview'}}">
+      <view class="stats-grid">
+        <view class="stat-card" style="background:#FFF0E0">
+          <text class="stat-num">{{stats.totalDishes}}</text>
+          <text class="stat-label">菜品</text>
+        </view>
+        <view class="stat-card" style="background:#E8F5E9">
+          <text class="stat-num">{{stats.totalFamilies}}</text>
+          <text class="stat-label">家庭</text>
+        </view>
+        <view class="stat-card" style="background:#E3F2FD">
+          <text class="stat-num">{{stats.totalUsers}}</text>
+          <text class="stat-label">用户</text>
+        </view>
+        <view class="stat-card" style="background:#F3E5F5">
+          <text class="stat-num">{{stats.totalMenus}}</text>
+          <text class="stat-label">菜单项</text>
+        </view>
+        <view class="stat-card" style="background:#FFF3E0">
+          <text class="stat-num">{{stats.totalPreorders}}</text>
+          <text class="stat-label">预定</text>
+        </view>
+      </view>
+      <view class="quick-actions">
+        <text class="section-title-sm">快捷操作</text>
+        <view class="action-row">
+          <view class="action-btn" bind:tap="switchTab" data-tab="dishes">🍳 管理菜品 →</view>
+          <view class="action-btn" bind:tap="switchTab" data-tab="users">👥 管理用户 →</view>
+          <view class="action-btn" bind:tap="switchTab" data-tab="families">🏠 管理家庭 →</view>
+          <view class="action-btn" bind:tap="switchTab" data-tab="system">⚙️ 系统设置 →</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ==================== 🍳 菜品管理 ==================== -->
+    <view class="tab-content" wx:if="{{currentTab === 'dishes'}}">
+      <view class="search-bar">
+        <input class="search-input" placeholder="搜索菜品名/分类" value="{{dishKeyword}}" bindinput="onDishSearchInput" confirm-type="search" bindconfirm="onDishSearch"/>
+        <view class="search-btn" bind:tap="onDishSearch">搜索</view>
+      </view>
+
+      <view class="batch-bar" wx:if="{{dishes.length > 0}}">
+        <view class="select-all" bind:tap="toggleSelectAll">
+          <view class="checkbox {{dishSelectAll ? 'checked' : ''}}"></view>
+          <text>全选</text>
+        </view>
+        <view class="batch-delete-btn" bind:tap="batchDeleteDishes">🗑 批量删除</view>
+      </view>
+
+      <view class="page-bar" wx:if="{{dishTotal > 20}}">
+        <view class="page-btn" bind:tap="dishPrevPage">◀</view>
+        <text class="page-info">{{dishPage}}/{{Math.ceil(dishTotal/20)||1}}</text>
+        <view class="page-btn" bind:tap="dishNextPage">▶</view>
+      </view>
+
+      <view class="dish-list">
+        <view class="dish-item" wx:for="{{dishes}}" wx:key="_id">
+          <view class="dish-check" data-id="{{item._id}}" bind:tap="toggleDishSelect">
+            <view class="checkbox {{dishSelected[item._id] ? 'checked' : ''}}"></view>
+          </view>
+          <view class="dish-info" data-dish="{{item}}" bind:tap="startEditDish">
+            <text class="dish-name">{{item.name}}</text>
+            <text class="dish-meta">{{item.cuisine || '家常'}} · {{item.difficulty === 'hard' ? '困难' : item.difficulty === 'medium' ? '中等' : '简单'}} · {{item.cook_time || 30}}min</text>
+            <text class="dish-meta-sm">{{item.family_id}} · {{item.is_public ? '🌐公开' : '🔒私有'}}</text>
+          </view>
+          <view class="dish-actions">
+            <view class="icon-btn" data-id="{{item._id}}" bind:tap="toggleDishPublic">{{item.is_public ? '🔓' : '🔒'}}</view>
+            <view class="icon-btn del" data-id="{{item._id}}" data-name="{{item.name}}" bind:tap="deleteDish">🗑</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{dishLoading}}" class="loading-text">加载中...</view>
+      <view wx:if="{{!dishLoading && dishes.length === 0}}" class="empty-text">暂无菜品</view>
+
+      <!-- 编辑弹窗 -->
+      <view class="modal-mask" wx:if="{{dishEditId}}" bind:tap="cancelEdit">
+        <view class="modal-card" catchtap="">
+          <view class="modal-title">编辑菜品</view>
+          <view class="form-row">
+            <text class="form-label-sm">名称</text>
+            <input class="form-input" value="{{dishEditForm.name}}" data-field="name" bindinput="onEditFieldChange"/>
+          </view>
+          <view class="form-row">
+            <text class="form-label-sm">分类</text>
+            <input class="form-input" value="{{dishEditForm.cuisine}}" data-field="cuisine" bindinput="onEditFieldChange"/>
+          </view>
+          <view class="form-row">
+            <text class="form-label-sm">难度</text>
+            <view class="form-inline">
+              <view class="chip-sm {{dishEditForm.difficulty === 'easy' ? 'active' : ''}}" data-field="difficulty" data-value="easy" bind:tap="onEditFieldChange">简单</view>
+              <view class="chip-sm {{dishEditForm.difficulty === 'medium' ? 'active' : ''}}" data-field="difficulty" data-value="medium" bind:tap="onEditFieldChange">中等</view>
+              <view class="chip-sm {{dishEditForm.difficulty === 'hard' ? 'active' : ''}}" data-field="difficulty" data-value="hard" bind:tap="onEditFieldChange">困难</view>
+            </view>
+          </view>
+          <view class="form-row">
+            <text class="form-label-sm">时间(分钟)</text>
+            <input class="form-input" type="number" value="{{dishEditForm.cook_time}}" data-field="cook_time" bindinput="onEditFieldChange"/>
+          </view>
+          <view class="form-row">
+            <text class="form-label-sm">公开</text>
+            <switch checked="{{dishEditForm.is_public}}" data-field="is_public" bindchange="onEditFieldChange"/>
+          </view>
+          <view class="modal-btns">
+            <view class="btn-cancel" bind:tap="cancelEdit">取消</view>
+            <view class="btn-confirm" bind:tap="saveDishEdit">保存</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ==================== 👥 用户管理 ==================== -->
+    <view class="tab-content" wx:if="{{currentTab === 'users'}}">
+      <view class="search-bar">
+        <input class="search-input" placeholder="搜索昵称/OPENID" value="{{userKeyword}}" bindinput="onUserSearchInput" confirm-type="search" bindconfirm="onUserSearch"/>
+        <view class="search-btn" bind:tap="onUserSearch">搜索</view>
+      </view>
+
+      <view class="filter-chips">
+        <view class="chip-sm {{userRoleFilter === '' ? 'active' : ''}}" data-role="" bind:tap="onUserRoleFilter">全部</view>
+        <view class="chip-sm {{userRoleFilter === 'admin' ? 'active' : ''}}" data-role="admin" bind:tap="onUserRoleFilter">家长</view>
+        <view class="chip-sm {{userRoleFilter === 'cook' ? 'active' : ''}}" data-role="cook" bind:tap="onUserRoleFilter">大厨</view>
+        <view class="chip-sm {{userRoleFilter === 'eater' ? 'active' : ''}}" data-role="eater" bind:tap="onUserRoleFilter">干饭人</view>
+        <view class="chip-sm {{userRoleFilter === 'child' ? 'active' : ''}}" data-role="child" bind:tap="onUserRoleFilter">花朵</view>
+      </view>
+
+      <view class="page-bar" wx:if="{{userTotal > 20}}">
+        <view class="page-btn" bind:tap="userPrevPage">◀</view>
+        <text class="page-info">{{userPage}}/{{Math.ceil(userTotal/20)||1}}</text>
+        <view class="page-btn" bind:tap="userNextPage">▶</view>
+      </view>
+
+      <view class="user-list">
+        <view class="user-item" wx:for="{{users}}" wx:key="_id" data-openid="{{item.openid}}" data-name="{{item.nickname}}" bindlongpress="copyUserOpenid">
+          <view class="user-left">
+            <image class="user-avatar" src="{{item.avatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+            <view class="user-info">
+              <text class="user-name">{{item.nickname || '微信用户'}}</text>
+              <text class="user-meta">{{item.familyName || '未加入家庭'}} · {{item.role || '无角色'}}</text>
+              <text class="user-oid">{{item.openid}}</text>
+            </view>
+          </view>
+          <view class="user-actions">
+            <view class="icon-btn" data-id="{{item._id}}" data-role="{{item.role}}" bind:tap="setUserRole">🔑</view>
+            <view class="icon-btn" data-id="{{item._id}}" data-name="{{item.nickname}}" bind:tap="removeUserFamily" wx:if="{{item.family_id}}">🚪</view>
+            <view class="icon-btn del" data-id="{{item._id}}" data-name="{{item.nickname}}" bind:tap="deleteUser">🗑</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{userLoading}}" class="loading-text">加载中...</view>
+      <view wx:if="{{!userLoading && users.length === 0}}" class="empty-text">暂无用户</view>
+    </view>
+
+    <!-- ==================== 🏠 家庭管理 ==================== -->
+    <view class="tab-content" wx:if="{{currentTab === 'families'}}">
+
+      <!-- 家庭详情弹窗 -->
+      <view class="modal-mask" wx:if="{{famDetail}}" bind:tap="closeFamDetail">
+        <view class="modal-card modal-wide" catchtap="">
+          <view class="modal-title">🏠 {{famDetail.name}}</view>
+          <text class="modal-sub">邀请码: {{famDetail.invite_code}}</text>
+          <view class="divider"></view>
+          <text class="section-title-sm">成员 ({{famMembers.length}}人)</text>
+          <view class="member-list">
+            <view class="member-item" wx:for="{{famMembers}}" wx:key="_id">
+              <image class="member-avatar" src="{{item.avatar || '/assets/default-avatar.png'}}" mode="aspectFill"/>
+              <text class="member-name">{{item.nickname || '微信用户'}}</text>
+              <text class="member-role">{{item.role || '无角色'}}</text>
+            </view>
+          </view>
+          <view class="divider"></view>
+          <view class="modal-btns">
+            <view class="btn-cancel" bind:tap="closeFamDetail">关闭</view>
+            <view class="btn-danger" data-id="{{famDetail._id}}" data-name="{{famDetail.name}}" bind:tap="deleteFamily">🗑 删除此家庭</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="page-bar" wx:if="{{famTotal > 20}}">
+        <view class="page-btn" bind:tap="famPrevPage">◀</view>
+        <text class="page-info">{{famPage}}/{{Math.ceil(famTotal/20)||1}}</text>
+        <view class="page-btn" bind:tap="famNextPage">▶</view>
+      </view>
+
+      <view class="fam-list">
+        <view class="fam-item" wx:for="{{families}}" wx:key="_id">
+          <view class="fam-info" data-id="{{item._id}}" bind:tap="viewFamily">
+            <text class="fam-name">🏠 {{item.name}}</text>
+            <text class="fam-meta">{{item.memberCount}}人 · {{item.dishCount}}道菜 · 邀请码 {{item.invite_code}}</text>
+          </view>
+          <view class="fam-actions">
+            <view class="icon-btn" data-id="{{item._id}}" bind:tap="viewFamily">👁</view>
+            <view class="icon-btn del" data-id="{{item._id}}" data-name="{{item.name}}" bind:tap="deleteFamily">🗑</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{famLoading}}" class="loading-text">加载中...</view>
+      <view wx:if="{{!famLoading && families.length === 0}}" class="empty-text">暂无家庭</view>
+    </view>
+
+    <!-- ==================== ⚙️ 系统 ==================== -->
+    <view class="tab-content" wx:if="{{currentTab === 'system'}}">
+      <view class="section">
+        <view class="section-title">👥 超管白名单（{{admins.length}}人）</view>
+        <view class="admin-list">
+          <view class="admin-chip" wx:for="{{admins}}" wx:key="*this">
+            <text class="admin-oid">{{item}}</text>
+            <view class="admin-remove" data-oid="{{item}}" bind:tap="removeAdmin">✕</view>
+          </view>
+        </view>
+        <view class="add-admin-row">
+          <input class="add-admin-input" placeholder="输入要授权的 OPENID" value="{{addOpenid}}" bindinput="onAddOpenidInput" confirm-type="done" bindconfirm="addAdmin"/>
+          <view class="add-admin-btn" bind:tap="addAdmin">添加到白名单</view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

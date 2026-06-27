@@ -105,11 +105,24 @@
   <view style="height: 140rpx;"></view>
 </view>
 
-  <!-- 底部操作栏 -->
+  <!-- 底部操作栏：三种状态 -->
   <view class="bottom-bar" wx:if="{{dish}}">
-    <view class="bottom-btn primary" bind:tap="cloneDish" wx:if="{{isForeign && hasFamily}}">
-      <text>{{cloning ? '引入中...' : '🍴 引入到我家'}}</text>
-    </view>
+    <!-- 游客（无家庭）：引导加入家庭 -->
+    <block wx:if="{{!hasFamily}}">
+      <view class="bottom-btn primary" bind:tap="goJoinFamily">
+        <text>🏠 加入家庭</text>
+      </view>
+      <view class="bottom-btn-hint">加入家庭后可引入菜品、预定</view>
+    </block>
+
+    <!-- 有家庭 + 别人家的公开菜：引入到我家 -->
+    <block wx:elif="{{isForeign}}">
+      <view class="bottom-btn primary" bind:tap="cloneDish">
+        <text>{{cloning ? '引入中...' : '🍴 引入到我家'}}</text>
+      </view>
+    </block>
+
+    <!-- 有家庭 + 自己家的菜：预定 / 管理 -->
     <block wx:else>
       <view class="bottom-btn primary" bind:tap="onPreorder">
         <text>预定</text>
@@ -126,4 +139,12 @@
 <!-- 加载中 -->
 <view class="loading-page" wx:if="{{!dish && loading}}">
   <text>加载中...</text>
+</view>
+
+<!-- 加载失败 -->
+<view class="error-page" wx:if="{{!dish && !loading && loadError}}">
+  <view class="error-icon">{{errorMsg.indexOf('家庭') !== -1 ? '🏠' : errorMsg.indexOf('无权') !== -1 ? '🔒' : errorMsg.indexOf('不存在') !== -1 ? '🔍' : '😢'}}</view>
+  <view class="error-title">加载失败</view>
+  <view class="error-desc">{{errorMsg || '请检查网络连接后重试'}}</view>
+  <view class="error-retry-btn" bind:tap="loadDish">重新加载</view>
 </view>

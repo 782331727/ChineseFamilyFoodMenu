@@ -54,21 +54,9 @@ Page({
     this.saveUserInfoAndLogin(wxUser)
   },
 
-  // 原登录方式（wx.getUserProfile 回退）
+  // 登录回退（wx.getUserProfile 在基础库 2.27+ 已回收，直接使用默认值）
   handleLogin() {
-    const app = getApp()
-    // 尝试 wx.getUserProfile（部分新版基础库已不可用）
-    if (wx.getUserProfile) {
-      wx.getUserProfile({
-        desc: '用于完善个人资料',
-        success: res => {
-          this.saveUserInfoAndLogin(res.userInfo)
-        },
-        fail: () => { wx.showToast({ title: '已取消', icon: 'none' }) }
-      })
-    } else {
-      wx.showToast({ title: '请点击上方按钮授权', icon: 'none' })
-    }
+    this.saveUserInfoAndLogin({ nickName: '微信用户', avatarUrl: '' })
   },
 
   saveUserInfoAndLogin(wxUser) {
@@ -209,5 +197,6 @@ Page({
   goPreorderList() { wx.navigateTo({ url: '/pages/preorder-list/preorder-list' }) },
   goMyPreorders() { wx.navigateTo({ url: '/pages/my-preorders/my-preorders' }) },
   goPrivacy() { wx.navigateTo({ url: '/pages/privacy/privacy' }) },
-  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.1\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) }
+  goAdmin() { wx.navigateTo({ url: '/pages/admin/admin' }) },
+  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.2\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) }
 })

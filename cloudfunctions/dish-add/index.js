@@ -4,25 +4,40 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
-// 内容安全检测：拼接所有文本字段，任一违规则拒绝
-async function checkContent(name, ingredients, steps) {
-  const texts = [name || '', ...(ingredients || []).map(i => i.name || ''), ...(steps || []).map(s => s || '')].filter(Boolean)
+// 内容安全检测 v2.0：必须传入 openid + scene + version
+// 官方文档：security.msgSecCheck 2.0 要求 openid（近2小时活跃）+ scene（1资料/2评论/3论坛/4社交）
+// 返回 result.suggest: pass(通过) / risky(违规) / review(人工审核)
+async function checkContent(openid, name, ingredients, steps, tags) {
+  const texts = [
+    name || '',
+    ...(ingredients || []).map(i => i.name || ''),
+    ...(steps || []).map(s => s || ''),
+    ...(tags || [])
+  ].filter(Boolean)
   if (texts.length === 0) return { pass: true }
   const content = texts.join(';')
   try {
-    const res = await cloud.openapi.security.msgSecCheck({ content })
-    return { pass: res.errCode === 0, err: res.errMsg }
+    const res = await cloud.openapi.security.msgSecCheck({
+      openid,           // 必填：用户 openid（近 2 小时需访问过小程序）
+      scene: 2,         // 必填：场景值 2=评论/发布内容
+      version: 2,       // 必填：固定 2 表示 2.0 接口
+      content           // 必填：待检测文本，上限 2500 字
+    })
+    // 2.0 返回格式：{ errcode, errmsg, result: { suggest: 'pass'|'risky'|'review', label } }
+    const passed = res.result && res.result.suggest === 'pass'
+    return { pass: passed, err: passed ? '' : (res.errmsg || '内容可能包含违规信息') }
   } catch (e) {
-    // openapi 未配置或调用失败时放行（避免正常功能被阻断）
-    console.warn('[dish-add] msgSecCheck failed:', e.errCode || e.message)
-    return { pass: true }
+    // 2.0 调用失败时拒绝提交（fail-close）：确保不合规内容不会绕过检查
+    // 常见错误码：40003 openid 无效 / 43104 appid 不匹配 / -604101 权限未配置
+    console.error('[dish-add] msgSecCheck v2.0 调用失败，内容将被拒绝:', e.errCode, e.message || e.errMsg)
+    return { pass: false, err: '内容安全检查暂时不可用，请稍后重试' }
   }
 }
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
   const {
-    action, dish_id, dish_ids,
+    action, dish_id, dish_ids, skip_check,
     name, image_url, image_urls, cuisine, difficulty, cook_time,
     ingredients, steps, nutrition_tags, source, is_public
   } = event
@@ -39,8 +54,8 @@ exports.main = async (event, context) => {
       return { code: -1, message: '您未加入任何家庭', data: null }
     }
 
-    // 权限检查：admin 或 cook 可操作（clone 除外，全家人可引入公开菜）
-    if (action !== 'clone' && user.role !== 'admin' && user.role !== 'cook') {
+    // 权限检查：admin/cook 可操作菜品管理；clone/rate 全员可用
+    if (action !== 'clone' && action !== 'rate' && user.role !== 'admin' && user.role !== 'cook') {
       return { code: -1, message: '权限不足，仅家长或大厨可操作菜品', data: null }
     }
 
@@ -193,8 +208,10 @@ exports.main = async (event, context) => {
         updated_at: new Date()
       }
 
-      const { pass } = await checkContent(updateData.name, updateData.ingredients, updateData.steps)
-      if (!pass) return { code: -1, message: '内容违规，请修改后重试', data: null }
+      if (!skip_check) {
+        const { pass, err } = await checkContent(OPENID, updateData.name, updateData.ingredients, updateData.steps, updateData.nutrition_tags)
+        if (!pass) return { code: -1, message: err || '内容违规，请修改后重试', data: null }
+      }
 
       await db.collection('dishes').doc(dish_id).update({ data: updateData })
       return { code: 0, message: '菜品更新成功', data: { _id: dish_id, ...updateData } }
@@ -224,8 +241,8 @@ exports.main = async (event, context) => {
       updated_at: now
     }
 
-    const { pass, err } = await checkContent(dishData.name, dishData.ingredients, dishData.steps)
-    if (!pass) return { code: -1, message: '内容违规，请修改后重试', data: null }
+    const { pass, err } = await checkContent(OPENID, dishData.name, dishData.ingredients, dishData.steps, dishData.nutrition_tags)
+    if (!pass) return { code: -1, message: err || '内容违规，请修改后重试', data: null }
 
     const res = await db.collection('dishes').add({ data: dishData })
 

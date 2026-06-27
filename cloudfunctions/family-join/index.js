@@ -1,12 +1,12 @@
 // 云函数：family-join
-// 通过邀请码加入家庭，默认 eater 角色
+// 通过邀请码加入家庭，固定分配 eater 角色（admin 可后续通过 family-update 调整）
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
-  const { invite_code, role } = event
+  const { invite_code } = event
 
   if (!invite_code) {
     return { code: -1, message: '邀请码不能为空', data: null }
@@ -35,8 +35,9 @@ exports.main = async (event, context) => {
 
     const family = familyRes.data[0]
 
-    // 更新用户：绑定家庭，设置角色
-    const assignRole = role || 'eater'
+    // 更新用户：绑定家庭，固定分配 eater 角色（防止客户端传 role 自提权）
+    // 角色调整由家长通过 family-update 云函数操作
+    const assignRole = 'eater'
     await db.collection('users').doc(user._id).update({
       data: {
         family_id: family._id,

@@ -6,7 +6,7 @@ const { hasPermission, refreshRole } = require('../../utils/auth')
 
 Page({
   data: {
-    userName: '张姐', avatar: '', todayText: '', greeting: '',
+    userName: '美食家', avatar: '', todayText: '', greeting: '',
     hasFamily: false, canManageDishes: false,
     viewMode: 'today',
     todayMenu: { morning: [], noon: [], evening: [] },
@@ -42,8 +42,9 @@ Page({
     const hour = new Date().getHours()
     let g = '你好'
     if (hour < 6) g = '夜深了'; else if (hour < 11) g = '早上好'; else if (hour < 14) g = '中午好'; else if (hour < 18) g = '下午好'; else g = '晚上好'
-    const u = getApp().globalData.userInfo
-    this.setData({ greeting: g, userName: (u && u.nickName) || '张姐', avatar: (u && u.avatarUrl) || '', todayText: formatDateWithWeek() })
+    const u = getApp().globalData.userInfo || wx.getStorageSync('userInfo') || {}
+    const name = u.nickName || u.nickname || '美食家'
+    this.setData({ greeting: g, userName: name, avatar: u.avatarUrl || u.avatar || '', todayText: formatDateWithWeek() })
   },
 
   switchView(e) {

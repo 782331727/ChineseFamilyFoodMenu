@@ -7,7 +7,10 @@ const { getTodayStr, getTomorrowStr } = require('../../utils/date')
 Page({
   data: {
     dish: null,
+    dishId: '',
     loading: true,
+    loadError: false,
+    errorMsg: '',
     difficultyText: '',
     myRating: 0,
     ratingLoading: false,
@@ -19,25 +22,35 @@ Page({
   onLoad(options) {
     const hasFamily = !!(getApp().globalData.familyId || wx.getStorageSync('familyId'))
     this.setData({ canManage: hasPermission('manage_dishes'), hasFamily })
-    if (options.id) { this.loadDish(options.id) }
+    if (options.id) {
+      this.setData({ dishId: options.id })
+      this.loadDish(options.id)
+    }
   },
 
   loadDish(id) {
-    this.setData({ loading: true })
+    const dishId = id || this.data.dishId
+    if (!dishId) {
+      this.setData({ loading: false, loadError: true })
+      return
+    }
+    this.setData({ loading: true, loadError: false })
     callFunction('dish-detail', { dish_id: id }).then(data => {
       const mapped = mapDish(data && data.dish)
       const myFid = getApp().globalData.familyId || wx.getStorageSync('familyId') || ''
       const isForeign = mapped && mapped.familyId && mapped.familyId !== myFid
       const diffMap = { easy: '简单', medium: '中等', hard: '困难', '简单': '简单', '中等': '中等', '较难': '困难' }
       this.setData({
-        dish: mapped, loading: false,
+        dish: mapped, loading: false, loadError: false,
         difficultyText: diffMap[mapped && mapped.difficulty] || '简单',
         isForeign,
         myRating: (data && data.my_rating) || 0
       })
-    }).catch(() => {
-      this.setData({ loading: false })
-      wx.showToast({ title: '加载失败', icon: 'none' })
+    }).catch((e) => {
+      // api.js 已通过 toast 显示具体错误消息
+      // 将错误信息存入 data 让错误页展示真实原因，而非只写死"网络"
+      const msg = (e && e.message) || '加载失败'
+      this.setData({ loading: false, loadError: true, errorMsg: msg })
     })
   },
 
@@ -157,5 +170,10 @@ Page({
     }).catch(() => {
       wx.showToast({ title: '引入失败', icon: 'none' })
     }).finally(() => { this.setData({ cloning: false }) })
+  },
+
+  // 游客引导：跳转家庭页创建/加入家庭
+  goJoinFamily() {
+    wx.navigateTo({ url: '/pages/family/family' })
   }
 })

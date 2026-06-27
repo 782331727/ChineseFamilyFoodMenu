@@ -9,6 +9,7 @@
         <text class="no-family-sub">创建或加入一个家庭，就能看到家人的预定情况了</text>
       </view>
     </view>
+    <view class="btn-primary no-family-btn" bind:tap="goJoinFamily">去加入家庭</view>
   </view>
 
   <block wx:else>
