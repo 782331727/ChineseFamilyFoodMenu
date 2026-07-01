@@ -40,7 +40,8 @@ exports.main = async (event, context) => {
               version: 2,           // 必填：2.0 接口
               content: family_name  // 必填：待检测文本
             })
-            if (check.result && check.result.suggest !== 'pass') {
+            const passed = check.result && check.result.suggest === 'pass'
+            if (!passed) {
               return { code: -1, message: '内容违规，请修改', data: null }
             }
           } catch (e) {

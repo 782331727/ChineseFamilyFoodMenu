@@ -53,9 +53,14 @@ function callFunction(name, data = {}) {
           // "您未加入任何家庭"是正常业务状态（新用户），不在每个页面弹 toast，
           // 由各页面自行处理空数据展示引导
           const isNoFamily = errMsg && errMsg.includes('未加入任何家庭')
-          if (!isNoFamily) {
-            wx.showToast({ title: errMsg, icon: 'none' })
-          }
+	          if (!isNoFamily) {
+	            // 安全违规类消息用 Modal 显示（停留时间更长，用户可看清）
+	            if (errMsg.includes('违规') || errMsg.includes('安全检查') || errMsg.includes('安全检测')) {
+	              wx.showModal({ title: '提示', content: errMsg, showCancel: false, confirmText: '知道了' })
+	            } else {
+	              wx.showToast({ title: errMsg, icon: 'none', duration: 3000 })
+	            }
+	          }
           console.warn(`[callFunction] ${name}:`, errMsg)
           reject(new Error(errMsg))
         }

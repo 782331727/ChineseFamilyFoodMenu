@@ -131,15 +131,16 @@ async function doAddPreorder(opts) {
 	        content: note          // 必填：待检测文本
 	      })
 	      // 2.0 返回 result.suggest: pass(通过) / risky(违规) / review(人工审核)
-	      if (secCheck.result && secCheck.result.suggest !== 'pass') {
-	        return { code: -1, message: '备注内容违规，请修改', data: null }
-	      }
-	    } catch (e) {
-	      // openapi 调用异常时拒绝备注（fail-close），确保不合规内容不会绕过检查
-	      console.error('[preorder-add] msgSecCheck v2.0 调用失败，备注将被拒绝:', e.errCode, e.message || e.errMsg)
-	      return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
-	    }
-	  }
+          const passed = secCheck.result && secCheck.result.suggest === 'pass'
+          if (!passed) {
+            return { code: -1, message: '备注内容违规，请修改', data: null }
+          }
+        } catch (e) {
+          // openapi 调用异常时拒绝备注（fail-close），确保不合规内容不会绕过检查
+          console.error('[preorder-add] msgSecCheck v2.0 调用失败，备注将被拒绝:', e.errCode, e.message || e.errMsg)
+          return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+        }
+      }
 
   const preorderData = {
     family_id: familyId,
@@ -401,7 +402,8 @@ async function handleUpdateNote(OPENID, preorderId, note) {
         const secCheck = await cloud.openapi.security.msgSecCheck({
           openid: OPENID, scene: 2, version: 2, content: note
         })
-        if (secCheck.result && secCheck.result.suggest !== 'pass') {
+        const passed = secCheck.result && secCheck.result.suggest === 'pass'
+        if (!passed) {
           return { code: -1, message: '备注内容违规，请修改', data: null }
         }
       } catch (e) {

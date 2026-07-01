@@ -160,18 +160,11 @@ Page({
       steps: dish.steps || []
     })
 
-	    callFunction('dish-add', cloudData).then(() => {
-	      wx.showToast({ title: '已加入菜品库', icon: 'success' })
-	    }).catch((e) => {
-	      const msg = (e && e.message) || ''
-	      if (msg.includes('违规')) {
-	        wx.showModal({
-	          title: '内容审核未通过',
-	          content: '该菜品内容可能包含不合规信息，无法加入菜品库。',
-	          showCancel: false, confirmText: '知道了'
-	        })
-	      }
-	    })
+		    callFunction('dish-add', cloudData).then(() => {
+		      wx.showToast({ title: '已加入菜品库', icon: 'success' })
+		    }).catch(() => {
+		      // api.js 已通过 Modal 显示违规提示
+		    })
   },
 
   // === 手动表单 ===
@@ -375,11 +368,9 @@ Page({
       return
     }
 
-    // 智能安检：只有表单内容有变化才需要重新检测
-    const currentFp = this.formFingerprint()
-    const contentChanged = currentFp !== this.data.originalFingerprint
+    const isEdit = !!this.data.editingId
     wx.showLoading({
-      title: contentChanged ? '正在检查内容合规性…' : '保存中…',
+      title: '正在检查内容合规性…',
       mask: true
     })
 
@@ -397,8 +388,8 @@ Page({
         steps: form.steps.filter(s => s.trim())
       })
 
-      const params = this.data.editingId
-        ? { action: 'update', dish_id: this.data.editingId, ...cloudData, skip_check: !contentChanged }
+      const params = isEdit
+        ? { action: 'update', dish_id: this.data.editingId, ...cloudData }
         : { action: 'add', ...cloudData }
 
 	      callFunction('dish-add', params).then(() => {
@@ -409,18 +400,7 @@ Page({
 	        setTimeout(() => wx.switchTab({ url: '/pages/dishes/dishes' }), 1500)
 		      }).catch((e) => {
 		        wx.hideLoading()
-		        // api.js 已通过 toast 显示错误消息（含内容违规等），此处保持表单不关闭让用户修改
-		        const msg = (e && e.message) || ''
-		        if (msg.includes('违规')) {
-		          const isImage = msg.includes('图片')
-		          wx.showModal({
-		            title: '内容审核未通过',
-		            content: isImage
-		              ? '您上传的图片包含不合规内容，请更换后重试。'
-		              : '您发布的文字内容可能包含不合规信息，请修改后重试。',
-		            showCancel: false, confirmText: '知道了'
-		          })
-		        }
+		        // api.js 已通过 Modal 显示违规提示，此处保持表单不关闭让用户修改
 		      })
     }
 

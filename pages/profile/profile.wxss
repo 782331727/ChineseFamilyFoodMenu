@@ -116,6 +116,19 @@
   box-sizing: border-box;
   margin-bottom: 28rpx;
 }
+
+.modal-textarea {
+  width: 100%;
+  min-height: 200rpx;
+  background: #FFF8F3;
+  border-radius: 14rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+  margin-bottom: 28rpx;
+  line-height: 1.6;
+}
 .modal-btns {
   display: flex;
   gap: 20rpx;

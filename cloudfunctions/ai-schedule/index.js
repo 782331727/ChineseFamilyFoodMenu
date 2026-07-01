@@ -136,18 +136,60 @@ ${JSON.stringify(preorderByDate)}
       }
     )
 
-    const content = response.data.choices[0].message.content
-    let schedule
-    try {
-      let jsonStr = content.trim()
-      if (jsonStr.startsWith('```')) {
-        jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-      }
-      schedule = JSON.parse(jsonStr)
-    } catch (parseErr) {
-      console.error('[ai-schedule] JSON parse error:', parseErr)
-      return { code: -1, message: 'AI 返回格式异常，请重试', data: { raw: content } }
-    }
+	    const content = response.data.choices[0].message.content
+	    let schedule
+	    try {
+	      let jsonStr = content.trim()
+	      if (jsonStr.startsWith('```')) {
+	        jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+	      }
+	      schedule = JSON.parse(jsonStr)
+	    } catch (parseErr) {
+	      console.error('[ai-schedule] JSON parse error:', parseErr)
+	      // 内容安全检测：raw 文本检查后再决定是否返回
+	      try {
+	        const rawCheck = await cloud.openapi.security.msgSecCheck({
+	          openid: OPENID, scene: 2, version: 2, content: (content || '').slice(0, 2400)
+	        })
+        const rawPassed = rawCheck.result && rawCheck.result.suggest === 'pass'
+        if (!rawPassed) {
+          return { code: -1, message: 'AI 返回内容未通过安全检测，请重试', data: null }
+        }
+	      } catch (e) {
+	        console.error('[ai-schedule] raw msgSecCheck 失败:', e.errCode)
+	        return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+	      }
+	      return { code: -1, message: 'AI 返回格式异常，请重试', data: { raw: content } }
+	    }
+
+	    // 内容安全检测 v2.0：AI 生成结果展示前检查（v1.2.4 审核合规修复）
+	    const dishNames = []
+	    if (schedule && schedule.schedule) {
+	      schedule.schedule.forEach(day => {
+	        if (day.meals) {
+	          ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+	            if (day.meals[meal] && day.meals[meal].dish_name) {
+	              dishNames.push(day.meals[meal].dish_name)
+	            }
+	          })
+	        }
+	      })
+	    }
+	    if (dishNames.length > 0) {
+	      try {
+	        const checkText = dishNames.join('；').slice(0, 2400)
+	        const check = await cloud.openapi.security.msgSecCheck({
+	          openid: OPENID, scene: 2, version: 2, content: checkText
+	        })
+        const passed = check.result && check.result.suggest === 'pass'
+        if (!passed) {
+          return { code: -1, message: 'AI 生成的菜名未通过安全检测，请重试', data: null }
+        }
+	      } catch (e) {
+	        console.error('[ai-schedule] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+	        return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+	      }
+	    }
 
     return {
       code: 0,

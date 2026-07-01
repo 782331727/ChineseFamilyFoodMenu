@@ -3,10 +3,21 @@
   "functionRoot": "cloudfunctions",
   "functions": [
     { "name": "content-admin", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "dish-add", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
     { "name": "dish-detail", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "family-create", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "img-check", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "media-check", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
     { "name": "menu-manage", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "preorder-add", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
     { "name": "shopping-list", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
     { "name": "login", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
-    { "name": "family-update", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true }
+    { "name": "profile-manage", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "family-update", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 15, "memorySize": 256, "installDependency": true },
+    { "name": "ai-generate", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 60, "memorySize": 256, "installDependency": true },
+    { "name": "ai-nutrition", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 25, "memorySize": 256, "installDependency": true },
+    { "name": "ai-schedule", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 25, "memorySize": 256, "installDependency": true },
+    { "name": "ai-shopping", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 25, "memorySize": 256, "installDependency": true },
+    { "name": "feedback", "handler": "index.main", "runtime": "Nodejs18.15", "timeout": 10, "memorySize": 256, "installDependency": true }
   ]
 }

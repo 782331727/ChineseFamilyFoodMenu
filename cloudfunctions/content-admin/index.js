@@ -149,20 +149,35 @@ exports.main = async (event) => {
         return { code: 0, data: { list: list.data, total: count.total, page: page || 1, pageSize: size } }
       }
 
-      case 'dish_edit': {
-        const { dish_id, name, cuisine, difficulty, cook_time, is_public } = event
-        if (!dish_id) return { code: -1, message: '缺少菜品ID' }
-        const update = {}
-        if (name !== undefined) update.name = name
-        if (cuisine !== undefined) update.cuisine = cuisine
-        if (difficulty !== undefined) update.difficulty = difficulty
-        if (cook_time !== undefined) update.cook_time = parseInt(cook_time) || 30
-        if (is_public !== undefined) update.is_public = !!is_public
-        if (Object.keys(update).length === 0) return { code: -1, message: '无修改内容' }
-        update.updated_at = new Date()
-        await db.collection('dishes').doc(dish_id).update({ data: update })
-        return { code: 0, message: '已更新' }
-      }
+	      case 'dish_edit': {
+	        const { dish_id, name, cuisine, difficulty, cook_time, is_public } = event
+	        if (!dish_id) return { code: -1, message: '缺少菜品ID' }
+	        // 内容安全检测 v2.0：编辑菜品名称时检查（v1.2.4 审核合规修复）
+	        if (name) {
+	          try {
+	            const check = await cloud.openapi.security.msgSecCheck({
+	              openid: OPENID, scene: 2, version: 2, content: name
+	            })
+            const passed = check.result && check.result.suggest === 'pass'
+            if (!passed) {
+              return { code: -1, message: '菜品名称违规，请修改', data: null }
+            }
+	          } catch (e) {
+	            console.error('[content-admin] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+	            return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+	          }
+	        }
+	        const update = {}
+	        if (name !== undefined) update.name = name
+	        if (cuisine !== undefined) update.cuisine = cuisine
+	        if (difficulty !== undefined) update.difficulty = difficulty
+	        if (cook_time !== undefined) update.cook_time = parseInt(cook_time) || 30
+	        if (is_public !== undefined) update.is_public = !!is_public
+	        if (Object.keys(update).length === 0) return { code: -1, message: '无修改内容' }
+	        update.updated_at = new Date()
+	        await db.collection('dishes').doc(dish_id).update({ data: update })
+	        return { code: 0, message: '已更新' }
+	      }
 
       case 'dish_toggle_public': {
         const { dish_id } = event

@@ -352,10 +352,10 @@ Page({
     if (!name) { wx.showToast({ title: '请输入食材名', icon: 'none' }); return }
     const cat = this.data.addCategory || '其他'
     const amount = (this.data.addAmount || '').trim()
+    const newItem = { name, amount, category: cat, checked: false, estimated_price: '' }
 
     // 如果没有已有清单，先创建一个
     if (this.data.rawListIds.length === 0) {
-      const newItem = { name, amount, category: cat, checked: false, estimated_price: '' }
       callFunction('shopping-list', {
         action: 'create',
         week_start: this.data.startDate,
@@ -367,24 +367,30 @@ Page({
       return
     }
 
-    // 添加到已有清单
+    // 先审后显：调云函数检查通过后再更新本地列表
     const listId = this.data.rawListIds[0]
-    let catIdx = this.data.shoppingList.findIndex(c => c.category === cat)
-    if (catIdx < 0) {
-      this.data.shoppingList.push({ category: cat, icon: CATEGORY_ICONS[cat] || '📦', items: [], checkedCount: 0 })
-      catIdx = this.data.shoppingList.length - 1
-    }
-    const itemCounter = this.data.totalItems + 1
-    this.data.shoppingList[catIdx].items.push({
-      _key: 'i_' + itemCounter, name, amount, checked: false,
-      estimatedPrice: '', _listId: listId, _itemIndex: this.data.shoppingList[catIdx].items.length
+    callFunction('shopping-list', {
+      action: 'update_items',
+      list_id: listId,
+      items: this.rebuildRawItemsForList(listId, cat, { _key: '', name, amount, checked: false, estimatedPrice: '', _listId: listId, _itemIndex: 0 })
+    }).then(() => {
+      this.setData({ showAddPanel: false, addName: '', addAmount: '' })
+      this.loadShoppingList()
+    }).catch(() => {})
+  },
+
+  // 将当前列表数据 + 新项合并为 raw items 数组（用于 update_items）
+  rebuildRawItemsForList(listId, cat, newEntry) {
+    const byList = this.rebuildRawItems()
+    const existing = byList[listId] || []
+    existing.push({
+      name: newEntry.name,
+      amount: newEntry.amount,
+      category: cat,
+      checked: false,
+      estimated_price: ''
     })
-    this.setData({
-      [`shoppingList[${catIdx}]`]: this.data.shoppingList[catIdx],
-      totalItems: this.data.totalItems + 1, hasData: true,
-      showAddPanel: false, addName: '', addAmount: ''
-    })
-    this.syncToCloud(() => this.loadShoppingList())
+    return existing
   },
 
   refreshList() {

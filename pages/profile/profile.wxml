@@ -41,6 +41,17 @@
     </view>
   </view>
 
+  <!-- 意见反馈弹窗 -->
+  <view class="modal-mask" wx:if="{{showFeedbackModal}}" bind:tap="closeFeedback"></view>
+  <view class="modal-card" wx:if="{{showFeedbackModal}}">
+    <text class="modal-title">意见反馈</text>
+    <textarea class="modal-textarea" placeholder="请描述您遇到的问题或建议..." value="{{feedbackText}}" bindinput="onFeedbackInput" maxlength="500" auto-height></textarea>
+    <view class="modal-btns">
+      <view class="btn-outline modal-btn" bind:tap="closeFeedback"><text>取消</text></view>
+      <view class="btn-primary modal-btn" bind:tap="submitFeedback"><text>提交</text></view>
+    </view>
+  </view>
+
   <!-- 口味偏好 -->
   <view class="section">
     <view class="section-header">
@@ -136,6 +147,12 @@
       <view class="menu-item" bind:tap="goPrivacy">
         <text class="menu-icon">🛡️</text>
         <text class="menu-text">隐私政策</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-divider"></view>
+      <view class="menu-item" bind:tap="openFeedback">
+        <text class="menu-icon">💬</text>
+        <text class="menu-text">意见反馈</text>
         <text class="menu-arrow">›</text>
       </view>
       <view class="menu-divider"></view>

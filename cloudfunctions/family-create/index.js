@@ -56,7 +56,8 @@ exports.main = async (event, context) => {
         version: 2,
         content: name
       })
-      if (check.result && check.result.suggest !== 'pass') {
+      const passed = check.result && check.result.suggest === 'pass'
+      if (!passed) {
         return { code: -1, message: '家庭名称违规，请修改', data: null }
       }
     } catch (e) {

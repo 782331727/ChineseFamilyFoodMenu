@@ -189,12 +189,45 @@ exports.main = async (event, context) => {
       return { code: -1, message: 'AI 返回格式异常，请重试', data: { raw: content } }
     }
 
-    if (!Array.isArray(dishes)) dishes = [dishes]
+	    if (!Array.isArray(dishes)) dishes = [dishes]
 
-    return {
-      code: 0, message: 'ok',
-      data: {
-        dishes,
+	    // 内容安全检测 v2.0：AI 生成结果展示前检查（v1.2.4 审核合规修复）
+	    // 对每道 AI 生成的菜品做文本安全检测，违规内容不返回给前端展示
+	    const safeDishes = []
+	    for (const dish of dishes) {
+	      try {
+	        const textToCheck = [
+	          dish.name || '',
+	          ...(dish.steps || []).slice(0, 3),  // 只取前3步，控制长度在2500字以内
+	          dish.tips || ''
+	        ].filter(Boolean).join('；').slice(0, 2400)  // 截断留余量
+	        
+	        if (textToCheck.length > 0) {
+	          const check = await cloud.openapi.security.msgSecCheck({
+	            openid: OPENID, scene: 2, version: 2, content: textToCheck
+	          })
+          const passed = check.result && check.result.suggest === 'pass'
+          if (!passed) {
+            console.warn('[ai-generate] AI 生成的菜品未通过内容安全检测，已过滤:', dish.name)
+            continue  // 跳过违规菜品
+          }
+	        }
+	        safeDishes.push(dish)
+	      } catch (e) {
+	        // fail-close：安全检查异常时跳过该菜品（安全优先）
+	        console.error('[ai-generate] msgSecCheck 失败，跳过菜品:', dish.name, e.errCode, e.message || e.errMsg)
+	        // 不加入 safeDishes，该菜品不展示
+	      }
+	    }
+
+	    if (safeDishes.length === 0) {
+	      return { code: -1, message: 'AI 生成的内容未通过安全检测，请调整需求后重试', data: null }
+	    }
+
+	    return {
+	      code: 0, message: 'ok',
+	      data: {
+	        dishes: safeDishes,
         source: 'ai',
         meta: { term, seasonHint, recentCount: recentDishIds.length, memberCount: familyMembers.length }
       }

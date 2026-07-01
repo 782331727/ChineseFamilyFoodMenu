@@ -9,20 +9,41 @@ exports.main = async (event, context) => {
   const { nickname, avatar } = event
 
   try {
-    // 内容安全检测：昵称（创建/更新前检查）
-    if (nickname && nickname !== '微信用户') {
-      try {
-        const check = await cloud.openapi.security.msgSecCheck({
-          openid: OPENID, scene: 1, version: 2, content: nickname
-        })
-        if (check.result && check.result.suggest !== 'pass') {
+	    // 内容安全检测：昵称（创建/更新前检查）
+	    if (nickname && nickname !== '微信用户') {
+	      try {
+	        const check = await cloud.openapi.security.msgSecCheck({
+	          openid: OPENID, scene: 1, version: 2, content: nickname
+	        })
+        const passed = check.result && check.result.suggest === 'pass'
+        if (!passed) {
           return { code: -1, message: '昵称违规，请修改', data: null }
         }
-      } catch (e) {
-        console.error('[login] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
-        return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
-      }
-    }
+	      } catch (e) {
+	        console.error('[login] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+	        return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+	      }
+	    }
+	    // 内容安全检测：头像图片（v1.2.4 审核合规修复）
+	    if (avatar && avatar.startsWith('cloud://')) {
+	      try {
+	        const downloadRes = await cloud.downloadFile({ fileID: avatar })
+	        const imgCheck = await cloud.openapi.security.imgSecCheck({
+	          media: { contentType: 'image/jpeg', value: downloadRes.fileContent }
+	        })
+	        if (imgCheck.errCode !== 0) {
+	          console.warn('[login] 头像图片违规，拒绝上传:', imgCheck.errCode)
+	          return { code: -1, message: '头像包含违规内容，请更换', data: null }
+	        }
+		      } catch (e) {
+		        const errCode = e.errCode || 0
+		        console.error('[login] imgSecCheck 失败:', errCode, e.message || e.errMsg)
+		        if (errCode === 87014) {
+		          return { code: -1, message: '头像包含违规内容，请更换', data: null }
+		        }
+		        return { code: -1, message: '头像安全检查暂时不可用，请稍后重试', data: null }
+		      }
+	    }
     // 查询用户是否已存在
     const userRes = await db.collection('users').where({ openid: OPENID }).get()
 

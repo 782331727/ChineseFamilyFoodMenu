@@ -1,5 +1,5 @@
 /**
- * 静态回归检查 v1.2.3
+ * 静态回归检查 v1.2.4
  * 不依赖微信开发者工具，验证关键代码逻辑变更
  * 运行：node tests/static-check.js
  */
@@ -154,11 +154,11 @@ function checkVersion() {
   const profileJS = read('pages/profile/profile.js')
   const readmeMD = read('README.md')
   
-  check('profile.js showAbout 显示 v1.2.3',
-    profileJS.includes('v1.2.3'),
+  check('profile.js showAbout 显示 v1.2.4',
+    profileJS.includes('v1.2.4'),
     '关于对话框版本号')
-  check('README.md 有 v1.2.3 更新日志',
-    readmeMD.includes('v1.2.3'),
+  check('README.md 有 v1.2.4 更新日志',
+    readmeMD.includes('v1.2.4'),
     '文档已更新')
 }
 
@@ -258,12 +258,15 @@ function checkAuditFixes() {
   // 6f. dish-add 前端：内容违规提示
   const dishAddJS = read('pages/dish-add/dish-add.js')
   const aiCatchIdx = dishAddJS.indexOf('addAiDishToLib')
-  check('dish-add.js saveDish catch 识别内容违规',
-    dishAddJS.includes("includes('违规')"),
-    '违规时显示 Modal 而非静默')
-  check('dish-add.js addAiDishToLib catch 也识别违规',
-    dishAddJS.indexOf("includes('违规')") > aiCatchIdx,
-    'AI 生成的菜品违规也有提示')
+	  check('api.js 安全违规用 Modal 显示',
+	    read('utils/api.js').includes('showModal') && read('utils/api.js').includes("includes('违规')"),
+	    '违规消息弹 Modal 停留，非违规消息弹 Toast 3s')
+	  check('dish-add.js saveDish catch 不重复弹 Modal',
+	    !read('pages/dish-add/dish-add.js').includes('内容审核未通过'),
+	    'api.js 已统一处理违规提示，页面不再重复')
+	  check('dish-add.js AI菜品违规由 api.js 统一提示',
+	    read('pages/dish-add/dish-add.js').includes('api.js 已通过 Modal 显示违规提示'),
+	    'AI 菜品保存违规统一走 api.js Modal')
 
   // 6g. 游客路径：所有页面有 hasFamily 守卫 + 引导按钮
   const preorderListJS = read('pages/preorder-list/preorder-list.js')
@@ -541,18 +544,9 @@ function checkRoleCoverage() {
     'refreshRole 双重守卫')
 
   // 智能安检（指纹+skip_check）
-  check('dish-add.js 有 formFingerprint 方法',
-    dishAddJS.includes('formFingerprint'),
-    '表单指纹计算')
-  check('dish-add.js originalFingerprint 存储',
-    dishAddJS.includes('originalFingerprint'),
-    '编辑时保存原始指纹')
-  check('dish-add.js skip_check 基于指纹比对',
-    dishAddJS.includes('skip_check') && dishAddJS.includes('!contentChanged'),
-    '指纹不变则跳过安检')
-  check('dish-add 云函数 update 路径支持 skip_check',
-    dishAddCF.includes('skip_check'),
-    '云函数接收skip_check参数')
+	  check('dish-add.js saveDish 编辑时始终安检（不再依赖指纹）',
+	    dishAddJS.includes('正在检查内容合规性') && !dishAddJS.includes('skip_check: !contentChanged'),
+	    '编辑保存始终执行 msgSecCheck，不在前端跳过安检')
 
   // 首页问候
   check('首页问候不用硬编码张姐',
@@ -640,8 +634,166 @@ function checkStartupTimeout() {
 }
 
 // ============================================================
-// 辅助
+// 11. v1.2.4 审核合规修复：头像+全场景内容安全覆盖
 // ============================================================
+function checkV124AuditFixes() {
+  console.log('\n--- 11. v1.2.4 审核合规修复 ---')
+
+  // 11a. login 云函数：新增头像 imgSecCheck
+  const loginCF = read('cloudfunctions/login/index.js')
+  check('login 有 imgSecCheck 检测头像 (v1.2.4)',
+    loginCF.includes('imgSecCheck') && loginCF.includes('avatar'),
+    '登录时头像图片需经过内容安全检测')
+  check('login imgSecCheck 使用 downloadFile 下载云存储图片',
+    loginCF.includes('downloadFile({ fileID: avatar })'),
+    '从云存储下载头像后检测')
+  check('login imgSecCheck 失败时 fail-close 拒绝登录',
+    loginCF.includes('头像包含违规内容') && loginCF.includes('头像安全检查暂时不可用'),
+    '图片违规或API异常时拒绝头像上传')
+  check('login config.json 有 security.imgSecCheck 权限 (v1.2.4)',
+    read('cloudfunctions/login/config.json').includes('security.imgSecCheck'),
+    '权限声明中添加了图片安全检测')
+
+  // 11b. content-admin 云函数：新增 dish_edit msgSecCheck
+  const contentAdminCF = read('cloudfunctions/content-admin/index.js')
+  check('content-admin dish_edit 有 msgSecCheck (v1.2.4)',
+    contentAdminCF.includes('dish_edit') && contentAdminCF.includes('msgSecCheck'),
+    '超管编辑菜品名称时需经过文本安全检测')
+  check('content-admin msgSecCheck 使用 v2.0 格式 (openid+scene+version)',
+    contentAdminCF.includes('openid: OPENID') && contentAdminCF.includes('scene: 2') && contentAdminCF.includes('version: 2'),
+    '遵循 v2.0 标准调用格式')
+  check('content-admin msgSecCheck 用 result.suggest 判断',
+    contentAdminCF.includes('result.suggest'),
+    'v2.0 返回 suggest: pass/risky/review')
+  check('content-admin msgSecCheck fail-close',
+    contentAdminCF.includes('内容安全检查暂时不可用'),
+    'API异常时拒绝提交')
+  check('content-admin config.json 有 security.msgSecCheck 权限 (v1.2.4)',
+    read('cloudfunctions/content-admin/config.json').includes('security.msgSecCheck'),
+    '之前 config.json 无权限声明')
+
+  // 11c. profile.js 前端：安全检查失败时回退乐观更新（v1.2.4 修复）
+  const profileJS = read('pages/profile/profile.js')
+  check('profile saveUserInfoAndLogin catch 回退违规头像',
+    profileJS.includes('msg.includes(\'头像\')') && profileJS.includes('prevAvatar'),
+    '登录安全检测失败时回退本地违规头像（用旧值非空值）')
+  check('profile saveUserInfoAndLogin catch 回退违规昵称',
+    profileJS.includes('msg.includes(\'昵称\')') && profileJS.includes('prevNick'),
+    '昵称违规时回退为旧值（非硬编码默认值）')
+  check('profile changeAvatar 先审后显（v1.2.4 修复）',
+    profileJS.includes('正在检查头像') && profileJS.includes('deleteFile({ fileList: [fileID] })'),
+    '云函数检查通过后才更新 UI，违规图片从云存储清除')
+  check('profile saveNickname 先审后显（v1.2.4 修复）',
+    profileJS.includes('先审后显') && profileJS.includes('update_user_info'),
+    '改昵称云函数通过后才更新 UI')
+  check('profile addAvoid 先审后显（v1.2.4 修复）',
+    profileJS.includes('先审后显') && !profileJS.includes('filter(item => item !== val)'),
+    '云函数检查通过后才显示忌口标签')
+  check('profile showAbout 含 ICP 备案号 (v1.2.4)',
+    profileJS.includes('沪ICP备2026029453号-1X'),
+    '关于弹窗展示 ICP 备案信息')
+
+  // 11d. 其他云函数权限声明完整性（确认无遗漏）
+  check('img-check config 有 imgSecCheck',
+    read('cloudfunctions/img-check/config.json').includes('security.imgSecCheck'),
+    '专用图片检测云函数权限')
+  check('media-check config 有 mediaCheckAsync',
+    read('cloudfunctions/media-check/config.json').includes('security.mediaCheckAsync'),
+    '异步媒体检测权限')
+  check('dish-add config 同时有 msgSecCheck + imgSecCheck',
+    read('cloudfunctions/dish-add/config.json').includes('security.msgSecCheck') &&
+    read('cloudfunctions/dish-add/config.json').includes('security.imgSecCheck'),
+    '菜品添加/编辑需文本+图片双检测')
+  check('menu-manage config 同时有 msgSecCheck + imgSecCheck',
+    read('cloudfunctions/menu-manage/config.json').includes('security.msgSecCheck') &&
+    read('cloudfunctions/menu-manage/config.json').includes('security.imgSecCheck'),
+    '菜单管理需文本+图片双检测')
+  check('profile-manage config 同时有 msgSecCheck + imgSecCheck',
+    read('cloudfunctions/profile-manage/config.json').includes('security.msgSecCheck') &&
+    read('cloudfunctions/profile-manage/config.json').includes('security.imgSecCheck'),
+    '个人资料需文本+图片双检测')
+
+	  // 11e. AI 云函数展示前内容安全检测（v1.2.4 审核合规修复）
+	  check('ai-generate 有 msgSecCheck 展示前检测 (v1.2.4)',
+	    read('cloudfunctions/ai-generate/index.js').includes('msgSecCheck') &&
+	    read('cloudfunctions/ai-generate/config.json').includes('security.msgSecCheck'),
+	    'AI 推荐菜品展示前需文本安全检测')
+	  check('ai-generate 检测失败过滤违规菜品',
+	    read('cloudfunctions/ai-generate/index.js').includes('safeDishes'),
+	    '违规 AI 菜品从结果中排除')
+	  check('ai-generate 全部违规时有兜底提示',
+	    read('cloudfunctions/ai-generate/index.js').includes('safeDishes.length === 0'),
+	    '所有 AI 结果不通过时返回错误消息')
+
+	  check('ai-nutrition 有 msgSecCheck 展示前检测 (v1.2.4)',
+	    read('cloudfunctions/ai-nutrition/index.js').includes('msgSecCheck') &&
+	    read('cloudfunctions/ai-nutrition/config.json').includes('security.msgSecCheck'),
+	    'AI 营养分析展示前需文本安全检测')
+	  check('ai-nutrition 有 raw fallback 安全检查',
+	    read('cloudfunctions/ai-nutrition/index.js').includes('rawCheck'),
+	    'JSON 解析失败时的原始文本也需检测')
+
+	  check('ai-schedule 有 msgSecCheck 展示前检测 (v1.2.4)',
+	    read('cloudfunctions/ai-schedule/index.js').includes('msgSecCheck') &&
+	    read('cloudfunctions/ai-schedule/config.json').includes('security.msgSecCheck'),
+	    'AI 排期展示前需文本安全检测')
+	  check('ai-schedule 有 raw fallback 安全检查',
+	    read('cloudfunctions/ai-schedule/index.js').includes('rawCheck'),
+	    'JSON 解析失败时的原始文本也需检测')
+
+	  check('ai-shopping 有 msgSecCheck 展示前检测 (v1.2.4)',
+	    read('cloudfunctions/ai-shopping/index.js').includes('msgSecCheck') &&
+	    read('cloudfunctions/ai-shopping/config.json').includes('security.msgSecCheck'),
+	    'AI 采购清单展示前需文本安全检测')
+		  check('ai-shopping 有 raw fallback 安全检查',
+		    read('cloudfunctions/ai-shopping/index.js').includes('rawCheck'),
+		    'JSON 解析失败时的原始文本也需检测')
+
+		  // 11h. imgSecCheck 87014 处理 + 先审后显覆盖（v1.2.4）
+		  check('profile-manage imgSecCheck catch 处理 87014',
+		    read('cloudfunctions/profile-manage/index.js').includes('errCode === 87014'),
+		    '图片违规时正确提示而非显示暂时不可用')
+		  check('login imgSecCheck catch 处理 87014',
+		    read('cloudfunctions/login/index.js').includes('errCode === 87014'),
+		    '登录头像违规时正确提示')
+		  check('shopping confirmAddItem 先审后显',
+		    read('pages/shopping/shopping.js').includes('rebuildRawItemsForList'),
+		    '采购添加食材云函数通过后才加载列表')
+
+		  // 11g. 意见反馈功能（v1.2.4 新增，通过 profile-manage 复用权限）
+		  check('profile-manage 有 submit_feedback action',
+		    read('cloudfunctions/profile-manage/index.js').includes('submit_feedback'),
+		    '反馈提交复用已有 msgSecCheck 权限的云函数')
+		  check('profile-manage feedback 有 msgSecCheck 检测',
+		    read('cloudfunctions/profile-manage/index.js').includes('submit_feedback') &&
+		    read('cloudfunctions/profile-manage/index.js').includes('feedback') &&
+		    read('cloudfunctions/profile-manage/config.json').includes('security.msgSecCheck'),
+		    '反馈内容提交前有文本安全检测（复用已验证权限）')
+		  check('profile 有意见反馈入口',
+		    read('pages/profile/profile.wxml').includes('意见反馈') &&
+		    read('pages/profile/profile.wxml').includes('openFeedback'),
+		    '我的页面菜单中显示反馈入口')
+		  check('profile 反馈弹窗有 textarea',
+		    read('pages/profile/profile.wxml').includes('feedbackText') &&
+		    read('pages/profile/profile.wxml').includes('submitFeedback'),
+		    '反馈弹窗含输入框和提交按钮')
+		  check('profile 反馈需登录守卫',
+		    read('pages/profile/profile.js').includes('请先登录'),
+		    '宾客点击反馈提示登录')
+		  check('profile 提交后清空弹窗',
+		    read('pages/profile/profile.js').includes("feedbackText: ''"),
+		    '反馈成功后重置输入')
+
+	  // 11f. 确认无遗漏：其他只读或非UGC云函数不需要安全权限
+  check('dish-detail 无 config（只读）',
+    !fs.existsSync(path.join(ROOT, 'cloudfunctions/dish-detail/config.json')),
+    '只读查询无需安全权限')
+  check('family-join 无 config（只读+邀请码非UGC）',
+    !fs.existsSync(path.join(ROOT, 'cloudfunctions/family-join/config.json')),
+    '邀请码是系统生成的码，非用户内容')
+}
+
+
 function read(relativePath) {
   const fullPath = path.join(ROOT, relativePath)
   if (!fs.existsSync(fullPath)) {
@@ -655,7 +807,7 @@ function read(relativePath) {
 // 主流程
 // ============================================================
 function main() {
-  console.log('=== 张姐私房菜谱 v1.2.3 静态回归检查 ===\n')
+  console.log('=== 张姐私房菜谱 v1.2.4 静态回归检查 ===\n')
   
   checkEditFix()
   checkHistoricalLock()
@@ -667,6 +819,7 @@ function main() {
   checkTestScripts()
   checkCleanup()
   checkStartupTimeout()
+  checkV124AuditFixes()
 
   // 汇总
   console.log('\n' + '='.repeat(50))

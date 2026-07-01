@@ -124,18 +124,54 @@ ${JSON.stringify(dishes.map(d => ({
       }
     )
 
-    const content = response.data.choices[0].message.content
-    let result
-    try {
-      let jsonStr = content.trim()
-      if (jsonStr.startsWith('```')) {
-        jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-      }
-      result = JSON.parse(jsonStr)
-    } catch (parseErr) {
-      console.error('[ai-nutrition] JSON parse error:', parseErr)
-      return { code: -1, message: 'AI 返回格式异常，请重试', data: { raw: content } }
-    }
+	    const content = response.data.choices[0].message.content
+	    let result
+	    try {
+	      let jsonStr = content.trim()
+	      if (jsonStr.startsWith('```')) {
+	        jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+	      }
+	      result = JSON.parse(jsonStr)
+	    } catch (parseErr) {
+	      console.error('[ai-nutrition] JSON parse error:', parseErr)
+	      // 内容安全检测：raw 文本检查后再决定是否返回
+	      try {
+	        const rawCheck = await cloud.openapi.security.msgSecCheck({
+	          openid: OPENID, scene: 2, version: 2, content: (content || '').slice(0, 2400)
+	        })
+        const rawPassed = rawCheck.result && rawCheck.result.suggest === 'pass'
+        if (!rawPassed) {
+          return { code: -1, message: 'AI 返回内容未通过安全检测，请重试', data: null }
+        }
+	      } catch (e) {
+	        console.error('[ai-nutrition] raw msgSecCheck 失败:', e.errCode)
+	        return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+	      }
+	      return { code: -1, message: 'AI 返回格式异常，请重试', data: { raw: content } }
+	    }
+
+	    // 内容安全检测 v2.0：AI 生成结果展示前检查（v1.2.4 审核合规修复）
+	    const textsToCheck = [
+	      result.summary || '',
+	      result.overview ? JSON.stringify(result.overview).slice(0, 500) : '',
+	      ...(result.suggestions || []).slice(0, 3),
+	      ...(result.warnings || []).slice(0, 3)
+	    ].filter(Boolean)
+	    if (textsToCheck.length > 0) {
+	      try {
+	        const checkText = textsToCheck.join('；').slice(0, 2400)
+	        const check = await cloud.openapi.security.msgSecCheck({
+	          openid: OPENID, scene: 2, version: 2, content: checkText
+	        })
+        const passed = check.result && check.result.suggest === 'pass'
+        if (!passed) {
+          return { code: -1, message: 'AI 生成的营养分析未通过安全检测，请重试', data: null }
+        }
+	      } catch (e) {
+	        console.error('[ai-nutrition] msgSecCheck 失败:', e.errCode, e.message || e.errMsg)
+	        return { code: -1, message: '内容安全检查暂时不可用，请稍后重试', data: null }
+	      }
+	    }
 
     return {
       code: 0,

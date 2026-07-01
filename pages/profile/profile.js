@@ -15,6 +15,9 @@ Page({
     // 昵称编辑
     showNickModal: false,
     editNick: '',
+    // 意见反馈
+    showFeedbackModal: false,
+    feedbackText: '',
     // 宾客登录表单
     loginForm: { nickName: '', avatarUrl: '' }
   },
@@ -80,6 +83,9 @@ Page({
 
   saveUserInfoAndLogin(wxUser) {
     const info = { nickName: wxUser.nickName, avatarUrl: wxUser.avatarUrl }
+    // 乐观更新前先捕获旧值，用于安全检测失败时回退
+    const prevAvatar = this.data.userInfo.avatarUrl || ''
+    const prevNick = this.data.userInfo.nickName || '微信用户'
     this.setData({ userInfo: info, isLogin: true, loginForm: { nickName: '', avatarUrl: '' } })
 
     const app = getApp()
@@ -119,7 +125,22 @@ Page({
       wx.showToast({ title: '登录成功', icon: 'success' })
       this.loadProfile()
       this.loadStats()
-    }).catch(() => {})
+    }).catch(err => {
+      // api.js 已显示 toast，这里回退本地乐观更新的违规内容
+      const msg = (err && err.message) || ''
+      if (info.avatarUrl && info.avatarUrl.startsWith('cloud://') && msg.includes('头像')) {
+        const fallback = { ...info, avatarUrl: prevAvatar }
+        this.setData({ userInfo: fallback })
+        app.globalData.userInfo = fallback
+        wx.setStorageSync('userInfo', fallback)
+      }
+      if (msg.includes('昵称')) {
+        const fallback = { ...info, nickName: prevNick }
+        this.setData({ userInfo: fallback })
+        app.globalData.userInfo = fallback
+        wx.setStorageSync('userInfo', fallback)
+      }
+    })
   },
 
   // === 编辑昵称 ===
@@ -132,11 +153,15 @@ Page({
     const name = (this.data.editNick || '').trim()
     if (!name) { wx.showToast({ title: '昵称不能为空', icon: 'none' }); return }
     const app = getApp()
-    const userInfo = { ...this.data.userInfo, nickName: name }
-    this.setData({ userInfo, showNickModal: false })
-    app.globalData.userInfo = { ...app.globalData.userInfo, nickName: name }
-    wx.setStorageSync('userInfo', app.globalData.userInfo)
-    callFunction('profile-manage', { action: 'update_user_info', nickname: name }).catch(() => {})
+    // 先审后显：调云函数检查通过后再更新 UI
+    callFunction('profile-manage', { action: 'update_user_info', nickname: name }).then(() => {
+      const userInfo = { ...this.data.userInfo, nickName: name }
+      this.setData({ userInfo, showNickModal: false })
+      app.globalData.userInfo = { ...app.globalData.userInfo, nickName: name }
+      wx.setStorageSync('userInfo', app.globalData.userInfo)
+    }).catch(() => {
+      // api.js 已通过 Modal 显示违规提示，昵称不变
+    })
   },
 
   // === 换头像 ===
@@ -148,26 +173,56 @@ Page({
         wx.compressImage({
           src: tempPath, quality: 80, compressedWidth: 400,
           success: compressRes => {
-            wx.showLoading({ title: '上传中...' })
+            wx.showLoading({ title: '正在检查头像…', mask: true })
             uploadImage(compressRes.tempFilePath, 'avatars').then(fileID => {
-              wx.hideLoading()
               const app = getApp()
-              const userInfo = { ...this.data.userInfo, avatarUrl: fileID }
-              this.setData({ userInfo })
-              app.globalData.userInfo = { ...app.globalData.userInfo, avatarUrl: fileID }
-              wx.setStorageSync('userInfo', app.globalData.userInfo)
+              // 先审后显：调云函数检查通过后再更新 UI
               callFunction('profile-manage', {
                 action: 'update_user_info',
-                nickname: userInfo.nickName,
+                nickname: this.data.userInfo.nickName,
                 avatar: fileID
               }).then(() => {
+                wx.hideLoading()
+                const userInfo = { ...this.data.userInfo, avatarUrl: fileID }
+                this.setData({ userInfo })
+                app.globalData.userInfo = { ...app.globalData.userInfo, avatarUrl: fileID }
+                wx.setStorageSync('userInfo', app.globalData.userInfo)
                 wx.showToast({ title: '头像已更新', icon: 'success' })
-              }).catch(() => {})
+              }).catch(err => {
+                wx.hideLoading()
+                // api.js 已显示 toast，头像保持旧值，无需额外处理
+                // 删除未通过审核的云存储文件
+                if (fileID && fileID.startsWith('cloud://')) {
+                  wx.cloud.deleteFile({ fileList: [fileID] }).catch(() => {})
+                }
+              })
             }).catch(() => { wx.hideLoading() })
           },
           fail: () => { wx.showToast({ title: '图片处理失败', icon: 'none' }) }
         })
       }
+    })
+  },
+
+  // === 意见反馈 ===
+  openFeedback() {
+    if (!getApp().globalData.isLogin) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    this.setData({ showFeedbackModal: true, feedbackText: '' })
+  },
+  closeFeedback() { this.setData({ showFeedbackModal: false }) },
+  onFeedbackInput(e) { this.setData({ feedbackText: e.detail.value }) },
+  submitFeedback() {
+    const text = (this.data.feedbackText || '').trim()
+    if (!text) { wx.showToast({ title: '请输入反馈内容', icon: 'none' }); return }
+    if (text.length < 2) { wx.showToast({ title: '反馈内容太短', icon: 'none' }); return }
+    callFunction('profile-manage', { action: 'submit_feedback', content: text }).then(() => {
+      wx.showToast({ title: '感谢您的反馈！', icon: 'success' })
+      this.setData({ showFeedbackModal: false, feedbackText: '' })
+    }).catch(() => {
+      // api.js 已显示 toast 错误消息
     })
   },
 
@@ -203,9 +258,13 @@ Page({
     const val = (this.data.avoidInput || '').trim()
     if (!val) return
     if (this.data.avoidList.includes(val)) { wx.showToast({ title: '已存在', icon: 'none' }); return }
+    // 先审后显：调云函数检查通过后再更新本地列表
     const list = this.data.avoidList.concat(val)
-    this.setData({ avoidList: list, avoidInput: '' })
-    callFunction('profile-manage', { action: 'update_avoid_list', avoidList: list }).catch(() => {})
+    callFunction('profile-manage', { action: 'update_avoid_list', avoidList: list }).then(() => {
+      this.setData({ avoidList: list, avoidInput: '' })
+    }).catch(() => {
+      // api.js 已显示 toast，本地列表不变
+    })
   },
   removeAvoid(e) {
     const index = e.currentTarget.dataset.index
@@ -226,7 +285,7 @@ Page({
     }
     wx.navigateTo({ url: '/pages/admin/admin' })
   },
-  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.3\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐', showCancel: false }) },
+  showAbout() { wx.showModal({ title: '关于', content: '张姐的私房菜谱 v1.2.4\n家庭美食菜单管理小程序\n让做饭和吃饭都有条不紊\n\n由 DeepSeek AI 驱动智能推荐\n\n沪ICP备2026029453号-1X', showCancel: false }) },
 
   logout() {
     wx.showModal({
